@@ -1671,7 +1671,7 @@ const STR = {
     skillCardTier:"目前等級 {n}",
     previewCollapsed:"?",
     kbTipTitle:"⌨ 鍵盤操作(雙手都在打字家位!)",
-    kbTipLeft:"左手戰鬥:Q W / A S 四技能(排法=畫面上的技能量表),E 如來神掌,空白鍵 大絕",
+    kbTipLeft:"左手戰鬥:A S D F 四技能(排法=畫面上的技能量表),E 如來神掌,空白鍵 大絕",
     kbTipRight:"右手瞄準:滑鼠拖曳史萊姆為主;鍵盤派 J / L 調角度,按住 K 蓄力、放開發射,; 取消",
     winBanner:"勝利!",
     exportSave:"匯出存檔碼",
@@ -1927,7 +1927,7 @@ const STR = {
     skillCardTier:"Current tier {n}",
     previewCollapsed:"?",
     kbTipTitle:"⌨ Keyboard controls (both hands on the home row!)",
-    kbTipLeft:"Left hand fights: Q W / A S skills (same 2x2 layout as the on-screen gauges), E Buddha Palm, Space for ults",
+    kbTipLeft:"Left hand fights: A S D F skills (same order as the on-screen gauges), E Buddha Palm, Space for ults",
     kbTipRight:"Right hand aims: drag the slime with the mouse; keyboard fans can use J / L to angle, hold K to charge & release, ; to cancel",
     winBanner:"VICTORY!",
     exportSave:"Export Save Code",
@@ -4993,17 +4993,11 @@ function releaseSlime(){
 canvas.addEventListener("pointerup", (evt) => { gestureActive = false; ultGestureActive = false; releaseSlime(evt); });
 canvas.addEventListener("pointercancel", (evt) => { gestureActive = false; ultGestureActive = false; releaseSlime(evt); });
 // --- Keyboard controls (typing-tutor mode) ---
-// Full home-row play, hands matching their side of the screen: LEFT hand
-// aims the left-side slingshot (S/F rotate, hold D to charge and release to
-// launch, A cancels); RIGHT hand works the right-side skills (J/K/L/; in
-// badge order) and the thumb fires ults with Space (I = Skyfall when both
-// are armed). All eight home keys are in play, anchored on the F/J bumps.
-// v1.1.4 desktop remap: the mouse (right hand) owns aiming, so the four
-// skill keys move to the LEFT hand - and sit in the SAME 2x2 layout as the
-// midline gauges (power NW / crit NE / bounce SW / ammo SE): Q W / A S.
-// Keyboard aiming (the secondary scheme) mirrors over to the right hand.
-const KEY_ROUTE = { KeyQ:"power", KeyW:"crit", KeyA:"bounce", KeyS:"ammo" };
-const ROUTE_KEYCAPS = { power:"Q", crit:"W", bounce:"A", ammo:"S" };
+// Left hand skills sit on the ASDF home row (A power / S crit / D bounce /
+// F ammo) so the hand can rest flat without stretching between rows; E is
+// still Buddha Palm and Space fires ults. Right hand aims with J/K/L/;.
+const KEY_ROUTE = { KeyA:"power", KeyS:"crit", KeyD:"bounce", KeyF:"ammo" };
+const ROUTE_KEYCAPS = { power:"A", crit:"S", bounce:"D", ammo:"F" };
 let kbDetected = (() => {
   try { return !!(window.matchMedia && window.matchMedia("(hover: hover) and (pointer: fine)").matches); }
   catch(e){ return false; }
@@ -8832,6 +8826,11 @@ window.addEventListener("keydown", (evt) => {
     return;
   }
   if(cutscene){ skipCutscene(); evt.preventDefault(); return; }
+  if(gameState === "ended" && evt.code === "Space"){
+    evt.preventDefault();
+    endPrimaryBtn.click();
+    return;
+  }
   if(gameState !== "playing" || !slime) return;
   const code = evt.code;
   if(KEY_ROUTE[code] || code === "KeyJ" || code === "KeyK" || code === "KeyL" ||
