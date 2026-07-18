@@ -1541,6 +1541,7 @@ const STR = {
     lbSubmitting:"上傳中...",
     lbSubmitOk:"上傳成功!",
     lbSubmitFail:"上傳失敗,請稍後再試",
+    lbCooldown:"上傳太頻繁了,請等 {n} 秒後再試",
     lbNoScoreYet:"你還沒有分數紀錄,先玩一局吧!",
     shopTitle:"史萊姆道具店",
     shopSub:"用金幣購買道具,在關卡中點擊圖示使用!",
@@ -1797,6 +1798,7 @@ const STR = {
     lbSubmitting:"Submitting...",
     lbSubmitOk:"Submitted!",
     lbSubmitFail:"Submit failed, please try again later",
+    lbCooldown:"Submitting too fast, please wait {n}s",
     lbNoScoreYet:"You don't have a score yet, play a level first!",
     shopTitle:"Slime Item Shop",
     shopSub:"Spend coins on items, then tap the icon in-level to use them!",
@@ -4327,6 +4329,8 @@ function lbSubmitScore(){
       if(data && data.ok){
         lbStatusEl.textContent = tr("lbSubmitOk");
         lbFetchScores();
+      } else if(data && data.error === "cooldown"){
+        lbStatusEl.textContent = tr("lbCooldown", {n: data.retryAfter || "?"});
       } else {
         lbStatusEl.textContent = tr("lbSubmitFail");
       }
