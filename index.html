@@ -691,6 +691,48 @@
     margin:0;
     color:var(--ui-accent);
   }
+  #name-prompt-screen{
+    position:absolute;top:0;left:0;width:100%;height:100%;
+    background:rgba(20,16,40,0.92);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:clamp(10px,1.6vw,16px);
+    color:var(--ui-text);
+    text-align:center;
+    border-radius:14px;
+    z-index:10;
+    padding:4%;
+  }
+  #name-prompt-screen h2{
+    font-size:clamp(18px,3.4vw,26px);
+    margin:0;
+    color:var(--ui-accent);
+  }
+  #name-prompt-screen p{
+    font-size:clamp(11px,1.7vw,14px);
+    opacity:0.85;
+    margin:0;
+    max-width:420px;
+  }
+  #name-prompt-input{
+    font-family:inherit;
+    font-size:clamp(13px,2vw,17px);
+    padding:0.6em 1em;
+    border-radius:999px;
+    border:1px solid rgba(255,255,255,0.25);
+    background:rgba(0,0,0,0.25);
+    color:var(--ui-text);
+    outline:none;
+    width:min(80vw, 320px);
+    text-align:center;
+  }
+  #name-prompt-screen .btn-row{
+    display:flex;
+    gap:clamp(8px,1.6vw,14px);
+    justify-content:center;
+  }
   #lb-submit-row{
     display:flex;
     align-items:center;
@@ -1479,6 +1521,15 @@
       <div id="leaderboard-list"></div>
       <button class="btn secondary" id="leaderboard-back-btn">返回主頁</button>
     </div>
+    <div class="overlay hidden" id="name-prompt-screen">
+      <h2 id="name-prompt-title">幫你的史萊姆取個名字吧!</h2>
+      <p id="name-prompt-desc">這個名字會顯示在線上排行榜上,之後可以到排行榜頁面修改。</p>
+      <input type="text" id="name-prompt-input" maxlength="12" placeholder="輸入你的名字">
+      <div class="btn-row">
+        <button class="btn" id="name-prompt-confirm-btn">確定</button>
+        <button class="btn secondary" id="name-prompt-skip-btn">略過</button>
+      </div>
+    </div>
     <div class="overlay hidden" id="upgrade-screen">
       <h2 id="upgrade-title">選擇升級方向!</h2>
       <p class="upgrade-sub" id="upgrade-sub">每 3 關可以選擇一項永久強化</p>
@@ -1543,6 +1594,10 @@ const STR = {
     lbSubmitFail:"上傳失敗,請稍後再試",
     lbCooldown:"上傳太頻繁了,請等 {n} 秒後再試",
     lbNoScoreYet:"你還沒有分數紀錄,先玩一局吧!",
+    namePromptTitle:"幫你的史萊姆取個名字吧!",
+    namePromptDesc:"這個名字會顯示在線上排行榜上,之後可以到排行榜頁面修改。",
+    namePromptConfirm:"確定",
+    namePromptSkip:"略過",
     shopTitle:"史萊姆道具店",
     shopSub:"用金幣購買道具,在關卡中點擊圖示使用!",
     shopBack:"返回主頁",
@@ -1800,6 +1855,10 @@ const STR = {
     lbSubmitFail:"Submit failed, please try again later",
     lbCooldown:"Submitting too fast, please wait {n}s",
     lbNoScoreYet:"You don't have a score yet, play a level first!",
+    namePromptTitle:"Give your slime a name!",
+    namePromptDesc:"This name will show up on the online leaderboard. You can change it later on the leaderboard screen.",
+    namePromptConfirm:"Confirm",
+    namePromptSkip:"Skip",
     shopTitle:"Slime Item Shop",
     shopSub:"Spend coins on items, then tap the icon in-level to use them!",
     shopBack:"Back to Menu",
@@ -4044,6 +4103,13 @@ const lbNameInput = document.getElementById("lb-name-input");
 const lbSubmitBtn = document.getElementById("lb-submit-btn");
 const lbRefreshBtn = document.getElementById("lb-refresh-btn");
 const lbStatusEl = document.getElementById("lb-status");
+const namePromptScreen = document.getElementById("name-prompt-screen");
+const namePromptTitleEl = document.getElementById("name-prompt-title");
+const namePromptDescEl = document.getElementById("name-prompt-desc");
+const namePromptInput = document.getElementById("name-prompt-input");
+const namePromptConfirmBtn = document.getElementById("name-prompt-confirm-btn");
+const namePromptSkipBtn = document.getElementById("name-prompt-skip-btn");
+let namePromptCallback = null;
 const musicBtn = document.getElementById("music-btn");
 const sfxBtn = document.getElementById("sfx-btn");
 const fullscreenBtn = document.getElementById("fullscreen-btn");
@@ -4192,6 +4258,7 @@ function showMenu(){
   dragHint.classList.add("hidden");
   endScreen.classList.add("hidden");
   leaderboardScreen.classList.add("hidden");
+  namePromptScreen.classList.add("hidden");
   applyMenuText();
 }
 function applyShopText(){
@@ -4296,6 +4363,50 @@ function lbRenderScores(scores){
       '<span class="lb-level">Lv.' + s.level + '</span>' +
     '</div>';
   }).join("");
+}
+function showNamePrompt(onDone){
+  namePromptCallback = onDone;
+  namePromptTitleEl.textContent = tr("namePromptTitle");
+  namePromptDescEl.textContent = tr("namePromptDesc");
+  namePromptInput.placeholder = tr("lbNamePlaceholder");
+  namePromptConfirmBtn.textContent = tr("namePromptConfirm");
+  namePromptSkipBtn.textContent = tr("namePromptSkip");
+  namePromptInput.value = "";
+  menuScreen.classList.add("hidden");
+  namePromptScreen.classList.remove("hidden");
+  namePromptInput.focus();
+}
+function confirmNamePrompt(){
+  let name = (namePromptInput.value || "").trim().slice(0, 12);
+  if(!name) name = (lang === "zh") ? "無名史萊姆" : "Anon Slime";
+  saveData.playerName = name;
+  writeSave();
+  namePromptScreen.classList.add("hidden");
+  menuScreen.classList.remove("hidden");
+  const cb = namePromptCallback;
+  namePromptCallback = null;
+  if(cb) cb();
+}
+function lbAutoSubmit(scoreValue){
+  if(!lbUrlReady() || !saveData.playerName) return;
+  fetch(LEADERBOARD_URL, {
+    method: "POST",
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
+    body: JSON.stringify({
+      name: saveData.playerName,
+      score: scoreValue,
+      level: saveData.currentLevel || 0,
+      diff: difficulty
+    })
+  })
+    .then(r => r.json())
+    .then(data => {
+      if(gameState === "leaderboard" && data && data.ok){
+        lbStatusEl.textContent = tr("lbSubmitOk");
+        lbFetchScores();
+      }
+    })
+    .catch(() => {});
 }
 function lbSubmitScore(){
   if(!lbUrlReady()){
@@ -6331,7 +6442,9 @@ function finishLevel(outcome){
   if(outcome === "win"){
     score += (ammoTotal - ammoUsed) * 30; 
     saveData.currentLevel = Math.max(saveData.currentLevel, levelIndex + 1);
+    const prevHighScore = saveData.highScore || 0;
     saveData.highScore = Math.max(saveData.highScore, score);
+    if(saveData.highScore > prevHighScore) lbAutoSubmit(saveData.highScore);
     checkAchievements();
     const isFinalLevel = levelIndex === TOTAL_LEVELS - 1;
     const isGodLevel = !isFinalLevel && (levelIndex + 1) % 100 === 0;
@@ -8574,12 +8687,28 @@ function loop(ts){
   render(dt);
   requestAnimationFrame(loop);
 }
-startBtn.addEventListener("click", () => {
+function beginGameFromMenu(){
   if (saveData.currentLevel >= TOTAL_LEVELS) {
     startLevel(0);
   } else {
     startLevel(saveData.currentLevel);
   }
+}
+startBtn.addEventListener("click", () => {
+  if(lbUrlReady() && !saveData.playerName){
+    showNamePrompt(beginGameFromMenu);
+  } else {
+    beginGameFromMenu();
+  }
+});
+namePromptConfirmBtn.addEventListener("click", () => {
+  confirmNamePrompt();
+});
+namePromptSkipBtn.addEventListener("click", () => {
+  confirmNamePrompt();
+});
+namePromptInput.addEventListener("keydown", (evt) => {
+  if(evt.key === "Enter") confirmNamePrompt();
 });
 langBtn.addEventListener("click", () => {
   lang = lang === "zh" ? "en" : "zh";
