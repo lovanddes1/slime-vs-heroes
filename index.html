@@ -672,6 +672,126 @@
     cursor:not-allowed;
     filter:grayscale(0.3);
   }
+  #leaderboard-screen{
+    position:absolute;top:0;left:0;width:100%;height:100%;
+    background:rgba(20,16,40,0.92);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:clamp(8px,1.4vw,14px);
+    color:var(--ui-text);
+    text-align:center;
+    border-radius:14px;
+    z-index:10;
+    padding:4%;
+  }
+  #leaderboard-screen h2{
+    font-size:clamp(18px,3.6vw,30px);
+    margin:0;
+    color:var(--ui-accent);
+  }
+  #lb-submit-row{
+    display:flex;
+    align-items:center;
+    gap:0.5em;
+    flex-wrap:wrap;
+    justify-content:center;
+    width:100%;
+    max-width:520px;
+  }
+  #lb-name-input{
+    font-family:inherit;
+    font-size:clamp(12px,1.8vw,15px);
+    padding:0.5em 0.8em;
+    border-radius:999px;
+    border:1px solid rgba(255,255,255,0.25);
+    background:rgba(0,0,0,0.25);
+    color:var(--ui-text);
+    outline:none;
+    min-width:0;
+    flex:1 1 140px;
+  }
+  #lb-submit-btn{
+    flex-shrink:0;
+    font-family:inherit;
+    font-weight:700;
+    font-size:clamp(11px,1.7vw,14px);
+    padding:0.5em 1em;
+    border-radius:999px;
+    border:none;
+    cursor:pointer;
+    color:#2b2440;
+    background:linear-gradient(180deg,#ffe08a,var(--ui-accent));
+    box-shadow:0 3px 0 #b9821f;
+    white-space:nowrap;
+  }
+  #lb-submit-btn:disabled{ opacity:0.5;cursor:not-allowed;filter:grayscale(0.3); }
+  #lb-status{
+    font-size:clamp(10px,1.4vw,12.5px);
+    opacity:0.8;
+    min-height:1.4em;
+    margin:0;
+  }
+  #lb-refresh-btn{
+    font-family:inherit;
+    font-size:clamp(10px,1.5vw,13px);
+    padding:0.35em 0.9em;
+    border-radius:999px;
+    cursor:pointer;
+    border:1px solid rgba(255,255,255,0.25);
+    background:rgba(255,255,255,0.08);
+    color:var(--ui-text);
+  }
+  #leaderboard-list{
+    width:100%;
+    max-width:520px;
+    max-height:44vh;
+    overflow-y:auto;
+    display:flex;
+    flex-direction:column;
+    gap:0.4em;
+    padding:0 2px 4px 2px;
+  }
+  .lb-row{
+    display:flex;
+    align-items:center;
+    gap:0.6em;
+    background:rgba(255,255,255,0.06);
+    border:1px solid rgba(255,255,255,0.15);
+    border-radius:10px;
+    padding:0.4em 0.7em;
+    text-align:left;
+    font-size:clamp(11px,1.7vw,14px);
+  }
+  .lb-row.lb-row-me{
+    border-color:var(--ui-accent);
+    background:rgba(255,215,0,0.12);
+  }
+  .lb-rank{
+    font-weight:800;
+    color:var(--ui-accent);
+    width:2.4em;
+    flex-shrink:0;
+  }
+  .lb-name{
+    flex:1;
+    min-width:0;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  .lb-score{
+    font-weight:800;
+    flex-shrink:0;
+  }
+  .lb-level{
+    opacity:0.75;
+    flex-shrink:0;
+    font-size:0.9em;
+    width:3.6em;
+    text-align:right;
+  }
   #achv-screen{
     position:absolute;top:0;left:0;width:100%;height:100%;
     background:rgba(20,16,40,0.92);
@@ -1251,6 +1371,7 @@
         <button class="btn secondary" id="map-btn">世界地圖</button>
         <button class="btn secondary" id="shop-btn">商店</button>
         <button class="btn secondary" id="achv-btn">成就 / 造型</button>
+        <button class="btn secondary" id="leaderboard-btn">排行榜</button>
       </div>
       <div class="menu-btn-row menu-btn-row-small">
         <button class="btn secondary" id="version-btn">版本資訊</button>
@@ -1347,6 +1468,17 @@
       <div id="version-list"></div>
       <button class="btn secondary" id="version-back-btn">返回主頁</button>
     </div>
+    <div class="overlay hidden" id="leaderboard-screen">
+      <h2 id="leaderboard-title">線上排行榜</h2>
+      <div id="lb-submit-row">
+        <input type="text" id="lb-name-input" maxlength="12" placeholder="輸入你的名字">
+        <button class="btn-plain" id="lb-submit-btn">上傳我的最高分</button>
+        <button id="lb-refresh-btn">🔄</button>
+      </div>
+      <p id="lb-status"></p>
+      <div id="leaderboard-list"></div>
+      <button class="btn secondary" id="leaderboard-back-btn">返回主頁</button>
+    </div>
     <div class="overlay hidden" id="upgrade-screen">
       <h2 id="upgrade-title">選擇升級方向!</h2>
       <p class="upgrade-sub" id="upgrade-sub">每 3 關可以選擇一項永久強化</p>
@@ -1397,6 +1529,19 @@ const STR = {
     coinsEarned:"獲得 {n} 枚金幣!",
     coinsEarnedLucky:"獲得 {n} 枚金幣! (幸運符 x2)",
     shopBtn:"商店",
+    leaderboardBtn:"排行榜",
+    leaderboardTitle:"線上排行榜",
+    lbNamePlaceholder:"輸入你的名字",
+    lbSubmitBtn:"上傳我的最高分",
+    lbBack:"返回主頁",
+    lbNotConfigured:"排行榜尚未設定伺服器網址",
+    lbLoading:"讀取排行榜中...",
+    lbError:"讀取失敗,請稍後再試",
+    lbEmpty:"目前還沒有紀錄,搶頭香吧!",
+    lbSubmitting:"上傳中...",
+    lbSubmitOk:"上傳成功!",
+    lbSubmitFail:"上傳失敗,請稍後再試",
+    lbNoScoreYet:"你還沒有分數紀錄,先玩一局吧!",
     shopTitle:"史萊姆道具店",
     shopSub:"用金幣購買道具,在關卡中點擊圖示使用!",
     shopBack:"返回主頁",
@@ -1640,6 +1785,19 @@ const STR = {
     coinsEarned:"+{n} Coin!",
     coinsEarnedLucky:"+{n} Coin! (Lucky Clover x2)",
     shopBtn:"Shop",
+    leaderboardBtn:"Leaderboard",
+    leaderboardTitle:"Online Leaderboard",
+    lbNamePlaceholder:"Enter your name",
+    lbSubmitBtn:"Submit My High Score",
+    lbBack:"Back to Menu",
+    lbNotConfigured:"Leaderboard server URL not configured yet",
+    lbLoading:"Loading leaderboard...",
+    lbError:"Failed to load, please try again later",
+    lbEmpty:"No records yet, be the first!",
+    lbSubmitting:"Submitting...",
+    lbSubmitOk:"Submitted!",
+    lbSubmitFail:"Submit failed, please try again later",
+    lbNoScoreYet:"You don't have a score yet, play a level first!",
     shopTitle:"Slime Item Shop",
     shopSub:"Spend coins on items, then tap the icon in-level to use them!",
     shopBack:"Back to Menu",
@@ -3872,6 +4030,18 @@ const versionScreen = document.getElementById("version-screen");
 const versionTitleEl = document.getElementById("version-title");
 const versionListEl = document.getElementById("version-list");
 const versionBackBtn = document.getElementById("version-back-btn");
+// --- Online leaderboard (Google Apps Script + Google Sheet backend) ---
+// 部署好 Google Apps Script 網路應用程式後,把網址貼在這裡(結尾類似 /exec)
+const LEADERBOARD_URL = "https://script.google.com/macros/s/AKfycbzwJitG5BzV5D2Gn0QgN77ButChZMe_T4IuymQbPWkk-tpJKrQ8LKe_3fHSV5-doknC/exec";
+const leaderboardBtn = document.getElementById("leaderboard-btn");
+const leaderboardScreen = document.getElementById("leaderboard-screen");
+const leaderboardTitleEl = document.getElementById("leaderboard-title");
+const leaderboardListEl = document.getElementById("leaderboard-list");
+const leaderboardBackBtn = document.getElementById("leaderboard-back-btn");
+const lbNameInput = document.getElementById("lb-name-input");
+const lbSubmitBtn = document.getElementById("lb-submit-btn");
+const lbRefreshBtn = document.getElementById("lb-refresh-btn");
+const lbStatusEl = document.getElementById("lb-status");
 const musicBtn = document.getElementById("music-btn");
 const sfxBtn = document.getElementById("sfx-btn");
 const fullscreenBtn = document.getElementById("fullscreen-btn");
@@ -3967,6 +4137,7 @@ function applyMenuText(){
   menuTitleEl.textContent = tr("menuTitle");
   versionBtn.textContent = tr("versionBtn") + " v" + GAME_VERSION;
   achvBtn.textContent = tr("achvBtn");
+  leaderboardBtn.textContent = tr("leaderboardBtn");
   drawMenuSlime();
   musicBtn.textContent = tr("lblMusic") + ":" + tr(saveData.musicOn !== false ? "onWord" : "offWord");
   sfxBtn.textContent = tr("lblSfx") + ":" + tr(saveData.sfxOn !== false ? "onWord" : "offWord");
@@ -4018,6 +4189,7 @@ function showMenu(){
   escHint.classList.add("hidden");
   dragHint.classList.add("hidden");
   endScreen.classList.add("hidden");
+  leaderboardScreen.classList.add("hidden");
   applyMenuText();
 }
 function applyShopText(){
@@ -4071,6 +4243,98 @@ function showShop(){
   mapScreen.classList.add("hidden");
   shopScreen.classList.remove("hidden");
   applyShopText();
+}
+// --- Leaderboard screen ---
+function lbEscapeHtml(str){
+  return String(str).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+function lbUrlReady(){
+  return !!LEADERBOARD_URL && LEADERBOARD_URL.indexOf("PASTE_YOUR") !== 0;
+}
+function showLeaderboard(){
+  gameState = "leaderboard";
+  menuScreen.classList.add("hidden");
+  leaderboardScreen.classList.remove("hidden");
+  leaderboardTitleEl.textContent = tr("leaderboardTitle");
+  lbNameInput.placeholder = tr("lbNamePlaceholder");
+  lbSubmitBtn.textContent = tr("lbSubmitBtn");
+  leaderboardBackBtn.textContent = tr("lbBack");
+  lbStatusEl.textContent = "";
+  if(saveData.playerName) lbNameInput.value = saveData.playerName;
+  lbFetchScores();
+}
+function lbFetchScores(){
+  if(!lbUrlReady()){
+    leaderboardListEl.innerHTML = '<p style="opacity:0.7;">' + tr("lbNotConfigured") + '</p>';
+    return;
+  }
+  leaderboardListEl.innerHTML = '<p style="opacity:0.7;">' + tr("lbLoading") + '</p>';
+  fetch(LEADERBOARD_URL)
+    .then(r => r.json())
+    .then(data => {
+      if(!data || !data.ok) throw new Error((data && data.error) || "error");
+      lbRenderScores(data.scores || []);
+    })
+    .catch(() => {
+      leaderboardListEl.innerHTML = '<p style="opacity:0.7;">' + tr("lbError") + '</p>';
+    });
+}
+function lbRenderScores(scores){
+  if(!scores.length){
+    leaderboardListEl.innerHTML = '<p style="opacity:0.7;">' + tr("lbEmpty") + '</p>';
+    return;
+  }
+  const myName = saveData.playerName || "";
+  leaderboardListEl.innerHTML = scores.map((s, i) => {
+    const isMe = myName && s.name === myName;
+    return '<div class="lb-row' + (isMe ? " lb-row-me" : "") + '">' +
+      '<span class="lb-rank">#' + (i + 1) + '</span>' +
+      '<span class="lb-name">' + lbEscapeHtml(s.name) + '</span>' +
+      '<span class="lb-score">' + s.score + '</span>' +
+      '<span class="lb-level">Lv.' + s.level + '</span>' +
+    '</div>';
+  }).join("");
+}
+function lbSubmitScore(){
+  if(!lbUrlReady()){
+    lbStatusEl.textContent = tr("lbNotConfigured");
+    return;
+  }
+  const highScore = (saveData && saveData.highScore) || 0;
+  if(highScore <= 0){
+    lbStatusEl.textContent = tr("lbNoScoreYet");
+    return;
+  }
+  let name = (lbNameInput.value || "").trim().slice(0, 12);
+  if(!name) name = (lang === "zh") ? "無名史萊姆" : "Anon Slime";
+  saveData.playerName = name;
+  writeSave();
+  lbSubmitBtn.disabled = true;
+  lbStatusEl.textContent = tr("lbSubmitting");
+  fetch(LEADERBOARD_URL, {
+    method: "POST",
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
+    body: JSON.stringify({
+      name: name,
+      score: highScore,
+      level: saveData.currentLevel || 0,
+      diff: difficulty
+    })
+  })
+    .then(r => r.json())
+    .then(data => {
+      lbSubmitBtn.disabled = false;
+      if(data && data.ok){
+        lbStatusEl.textContent = tr("lbSubmitOk");
+        lbFetchScores();
+      } else {
+        lbStatusEl.textContent = tr("lbSubmitFail");
+      }
+    })
+    .catch(() => {
+      lbSubmitBtn.disabled = false;
+      lbStatusEl.textContent = tr("lbSubmitFail");
+    });
 }
 // --- World map screen ---
 function levelTypeForGlobalIndex(idx){
@@ -8328,6 +8592,18 @@ langBtn.addEventListener("click", () => {
 });
 shopBtn.addEventListener("click", () => {
   showShop();
+});
+leaderboardBtn.addEventListener("click", () => {
+  showLeaderboard();
+});
+leaderboardBackBtn.addEventListener("click", () => {
+  showMenu();
+});
+lbSubmitBtn.addEventListener("click", () => {
+  lbSubmitScore();
+});
+lbRefreshBtn.addEventListener("click", () => {
+  lbFetchScores();
 });
 achvBtn.addEventListener("click", () => {
   showAchvScreen();
