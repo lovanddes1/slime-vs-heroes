@@ -769,6 +769,10 @@
     white-space:nowrap;
   }
   #lb-submit-btn:disabled{ opacity:0.5;cursor:not-allowed;filter:grayscale(0.3); }
+  #lb-current-name{
+    font-size:clamp(11px,1.7vw,14px);
+    opacity:0.85;
+  }
   #lb-status{
     font-size:clamp(10px,1.4vw,12.5px);
     opacity:0.8;
@@ -1513,8 +1517,7 @@
     <div class="overlay hidden" id="leaderboard-screen">
       <h2 id="leaderboard-title">線上排行榜</h2>
       <div id="lb-submit-row">
-        <input type="text" id="lb-name-input" maxlength="12" placeholder="輸入你的名字">
-        <button class="btn-plain" id="lb-submit-btn">上傳我的最高分</button>
+        <span id="lb-current-name"></span>
         <button id="lb-refresh-btn">🔄</button>
       </div>
       <p id="lb-status"></p>
@@ -1594,6 +1597,8 @@ const STR = {
     lbSubmitFail:"上傳失敗,請稍後再試",
     lbCooldown:"上傳太頻繁了,請等 {n} 秒後再試",
     lbNoScoreYet:"你還沒有分數紀錄,先玩一局吧!",
+    lbCurrentName:"目前使用的名字:{name}(破紀錄時會自動更新分數)",
+    lbNoNameYet:"還沒設定名字,先開始遊戲一次就會請你取名字囉",
     namePromptTitle:"幫你的史萊姆取個名字吧!",
     namePromptDesc:"這個名字會顯示在線上排行榜上,之後可以到排行榜頁面修改。",
     namePromptConfirm:"確定",
@@ -1855,6 +1860,8 @@ const STR = {
     lbSubmitFail:"Submit failed, please try again later",
     lbCooldown:"Submitting too fast, please wait {n}s",
     lbNoScoreYet:"You don't have a score yet, play a level first!",
+    lbCurrentName:"Playing as: {name} (auto-updates on new high scores)",
+    lbNoNameYet:"No name set yet - start a game once and you'll be asked to pick one",
     namePromptTitle:"Give your slime a name!",
     namePromptDesc:"This name will show up on the online leaderboard. You can change it later on the leaderboard screen.",
     namePromptConfirm:"Confirm",
@@ -4099,8 +4106,7 @@ const leaderboardScreen = document.getElementById("leaderboard-screen");
 const leaderboardTitleEl = document.getElementById("leaderboard-title");
 const leaderboardListEl = document.getElementById("leaderboard-list");
 const leaderboardBackBtn = document.getElementById("leaderboard-back-btn");
-const lbNameInput = document.getElementById("lb-name-input");
-const lbSubmitBtn = document.getElementById("lb-submit-btn");
+const lbCurrentNameEl = document.getElementById("lb-current-name");
 const lbRefreshBtn = document.getElementById("lb-refresh-btn");
 const lbStatusEl = document.getElementById("lb-status");
 const namePromptScreen = document.getElementById("name-prompt-screen");
@@ -4325,11 +4331,11 @@ function showLeaderboard(){
   menuScreen.classList.add("hidden");
   leaderboardScreen.classList.remove("hidden");
   leaderboardTitleEl.textContent = tr("leaderboardTitle");
-  lbNameInput.placeholder = tr("lbNamePlaceholder");
-  lbSubmitBtn.textContent = tr("lbSubmitBtn");
   leaderboardBackBtn.textContent = tr("lbBack");
   lbStatusEl.textContent = "";
-  if(saveData.playerName) lbNameInput.value = saveData.playerName;
+  lbCurrentNameEl.textContent = saveData.playerName
+    ? tr("lbCurrentName", {name: saveData.playerName})
+    : tr("lbNoNameYet");
   lbFetchScores();
 }
 function lbFetchScores(){
@@ -4401,55 +4407,16 @@ function lbAutoSubmit(scoreValue){
   })
     .then(r => r.json())
     .then(data => {
-      if(gameState === "leaderboard" && data && data.ok){
-        lbStatusEl.textContent = tr("lbSubmitOk");
-        lbFetchScores();
+      if(gameState === "leaderboard" && data){
+        if(data.ok){
+          lbStatusEl.textContent = tr("lbSubmitOk");
+          lbFetchScores();
+        } else if(data.error === "cooldown"){
+          lbStatusEl.textContent = tr("lbCooldown", {n: data.retryAfter || "?"});
+        }
       }
     })
     .catch(() => {});
-}
-function lbSubmitScore(){
-  if(!lbUrlReady()){
-    lbStatusEl.textContent = tr("lbNotConfigured");
-    return;
-  }
-  const highScore = (saveData && saveData.highScore) || 0;
-  if(highScore <= 0){
-    lbStatusEl.textContent = tr("lbNoScoreYet");
-    return;
-  }
-  let name = (lbNameInput.value || "").trim().slice(0, 12);
-  if(!name) name = (lang === "zh") ? "無名史萊姆" : "Anon Slime";
-  saveData.playerName = name;
-  writeSave();
-  lbSubmitBtn.disabled = true;
-  lbStatusEl.textContent = tr("lbSubmitting");
-  fetch(LEADERBOARD_URL, {
-    method: "POST",
-    headers: { "Content-Type": "text/plain;charset=utf-8" },
-    body: JSON.stringify({
-      name: name,
-      score: highScore,
-      level: saveData.currentLevel || 0,
-      diff: difficulty
-    })
-  })
-    .then(r => r.json())
-    .then(data => {
-      lbSubmitBtn.disabled = false;
-      if(data && data.ok){
-        lbStatusEl.textContent = tr("lbSubmitOk");
-        lbFetchScores();
-      } else if(data && data.error === "cooldown"){
-        lbStatusEl.textContent = tr("lbCooldown", {n: data.retryAfter || "?"});
-      } else {
-        lbStatusEl.textContent = tr("lbSubmitFail");
-      }
-    })
-    .catch(() => {
-      lbSubmitBtn.disabled = false;
-      lbStatusEl.textContent = tr("lbSubmitFail");
-    });
 }
 // --- World map screen ---
 function levelTypeForGlobalIndex(idx){
@@ -8725,9 +8692,6 @@ leaderboardBtn.addEventListener("click", () => {
 });
 leaderboardBackBtn.addEventListener("click", () => {
   showMenu();
-});
-lbSubmitBtn.addEventListener("click", () => {
-  lbSubmitScore();
 });
 lbRefreshBtn.addEventListener("click", () => {
   lbFetchScores();
