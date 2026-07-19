@@ -548,6 +548,37 @@
     margin:-4px 0 0 0;
     text-shadow:0 2px 4px rgba(0,0,0,0.4);
   }
+  #end-breakdown{
+    background:rgba(255,255,255,0.06);
+    border:1px solid rgba(255,255,255,0.15);
+    border-radius:12px;
+    padding:0.6em 1em;
+    width:min(84vw, 380px);
+    font-size:clamp(11px,1.7vw,14px);
+  }
+  #end-breakdown .eb-row{
+    display:flex;
+    justify-content:space-between;
+    gap:0.8em;
+    padding:0.18em 0;
+  }
+  #end-breakdown .eb-label{
+    opacity:0.85;
+    text-align:left;
+  }
+  #end-breakdown .eb-value{
+    font-weight:700;
+    color:#a8f0c0;
+    white-space:nowrap;
+  }
+  #end-breakdown .eb-total{
+    border-top:1px solid rgba(255,255,255,0.2);
+    margin-top:0.35em;
+    padding-top:0.4em;
+    font-weight:800;
+    color:var(--ui-accent);
+    font-size:1.08em;
+  }
   #shop-screen{
     position:absolute;top:0;left:0;width:100%;height:100%;
     background:rgba(20,16,40,0.92);
@@ -1461,6 +1492,7 @@
     <div class="overlay hidden" id="end-screen">
       <h2 id="end-title">關卡完成!</h2>
       <p id="end-desc"></p>
+      <div class="hidden" id="end-breakdown"></div>
       <p class="hidden" id="end-coins"></p>
       <div class="btn-row">
         <button class="btn" id="end-primary-btn">下一關</button>
@@ -1557,6 +1589,11 @@ const STR = {
     level:"關卡 {n}",
     bossLevel:"關卡 {n} (小王戰!)",
     score:"分數: {n}",
+    ebKillScore:"擊殺分數",
+    ebAmmoBonus:"彈藥效率 {rank}級 ×{mult}",
+    ebComboBonus:"連擊加成 (最高 ×{n})",
+    ebPerfectBonus:"完美通關(全程不失手)",
+    ebTotal:"總分",
     ammoLabel:"剩餘史萊姆",
     escHint:"按 ESC 返回主頁",
     dragHint:"拖曳史萊姆瞄準,放開發射",
@@ -1820,6 +1857,11 @@ const STR = {
     level:"Level {n}",
     bossLevel:"Level {n} (BOSS!)",
     score:"Score: {n}",
+    ebKillScore:"Kill score",
+    ebAmmoBonus:"Ammo efficiency {rank} \u00d7{mult}",
+    ebComboBonus:"Combo bonus (max \u00d7{n})",
+    ebPerfectBonus:"Perfect clear (no misses)",
+    ebTotal:"Total",
     ammoLabel:"Slimes Left",
     escHint:"Press ESC to return to menu",
     dragHint:"Drag the slime to aim, release to launch",
@@ -3258,6 +3300,10 @@ function registerCombo(){
   if(!slime) return;
   slime._comboCount = (slime._comboCount || 0) + 1;
   comboPopUntil = performance.now() + 600;
+  if(slime._comboCount >= 2){
+    comboBonusAccum += 50 * (slime._comboCount - 1);
+  }
+  if(slime._comboCount > levelMaxCombo) levelMaxCombo = slime._comboCount;
   if(slime._comboCount > (saveData.stats.maxCombo || 0)){
     saveData.stats.maxCombo = slime._comboCount;
     checkAchievements();
@@ -4034,6 +4080,12 @@ let heroes = [];
 let ammoTotal = 0;
 let ammoUsed = 0;
 let score = 0;
+let levelKillScore = 0;
+let levelMaxCombo = 0;
+let comboBonusAccum = 0;
+let levelHadMiss = false;
+let killsThisShot = 0;
+let lastScoreBreakdown = null;
 let levelOutcome = null;
 let slime = null;
 let dragging = false;
@@ -4073,6 +4125,7 @@ const skillHintEl = document.getElementById("skill-hint");
 const endTitleEl = document.getElementById("end-title");
 const endDescEl = document.getElementById("end-desc");
 const endCoinsEl = document.getElementById("end-coins");
+const endBreakdownEl = document.getElementById("end-breakdown");
 const endPrimaryBtn = document.getElementById("end-primary-btn");
 const endMenuBtn = document.getElementById("end-menu-btn");
 const shopBtn = document.getElementById("shop-btn");
@@ -4763,6 +4816,23 @@ function showEndScreen(outcome){
   } else {
     endCoinsEl.classList.add("hidden");
   }
+  if(outcome === "win" && lastScoreBreakdown){
+    const b = lastScoreBreakdown;
+    let rows =
+      '<div class="eb-row"><span class="eb-label">' + tr("ebKillScore") + '</span><span class="eb-value">+' + b.killScore + '</span></div>' +
+      '<div class="eb-row"><span class="eb-label">' + tr("ebAmmoBonus", {rank:b.ammoRank, mult:b.ammoMult}) + '</span><span class="eb-value">+' + b.ammoBonus + '</span></div>';
+    if(b.comboBonus > 0){
+      rows += '<div class="eb-row"><span class="eb-label">' + tr("ebComboBonus", {n:b.maxCombo}) + '</span><span class="eb-value">+' + b.comboBonus + '</span></div>';
+    }
+    if(b.perfectClear){
+      rows += '<div class="eb-row"><span class="eb-label">' + tr("ebPerfectBonus") + '</span><span class="eb-value">+' + b.perfectBonus + '</span></div>';
+    }
+    rows += '<div class="eb-row eb-total"><span class="eb-label">' + tr("ebTotal") + '</span><span class="eb-value">' + b.total + '</span></div>';
+    endBreakdownEl.innerHTML = rows;
+    endBreakdownEl.classList.remove("hidden");
+  } else {
+    endBreakdownEl.classList.add("hidden");
+  }
   endMenuBtn.textContent = tr("backMenu");
 }
 function startLevel(idx){
@@ -4773,6 +4843,11 @@ function startLevel(idx){
   ammoTotal = lvl.ammo + getAmmoUpgradeBonus();
   ammoUsed = 0;
   score = 0;
+  levelKillScore = 0;
+  levelMaxCombo = 0;
+  comboBonusAccum = 0;
+  levelHadMiss = false;
+  killsThisShot = 0;
   particles = [];
   screenShake = 0;
   armedItem = null;
@@ -6337,7 +6412,10 @@ function checkDeaths(){
       h._counted = true;
       saveData.stats.totalKills = (saveData.stats.totalKills || 0) + 1;
       checkAchievements();
-      score += h.isFinal ? 10000 : (h.isGod ? 5000 : (h.isDemon ? 2000 : (h.isBoss ? 500 : 100)));
+      const killPts = h.isFinal ? 10000 : (h.isGod ? 5000 : (h.isDemon ? 2000 : (h.isBoss ? 500 : 100)));
+      score += killPts;
+      levelKillScore += killPts;
+      killsThisShot++;
       updateHud();
       const explodeColor = h.isFinal ? "#ff4030" : (h.isGod ? "#ffd700" : (h.isDemon ? "#b478ff" : (h.isBoss ? "#ffd700" : "#3f6fd6")));
       createImpactParticles(h.x, h.bottom - h.h/2, explodeColor, h.isFinal ? 90 : (h.isGod ? 70 : (h.isDemon ? 60 : (h.isBoss ? 40 : 20))));
@@ -6357,6 +6435,8 @@ function afterShotResolved(){
   if(gameState !== "playing") return;
   checkDeaths(); // flush any pending chain-explosion kills before deciding
   if(gameState !== "playing") return; // checkDeaths may have finished the level
+  if(killsThisShot === 0) levelHadMiss = true;
+  killsThisShot = 0;
   if(pendingOutcome) return; // outcome already queued - no new slime
   const heroesRemaining = heroes.filter(h => h.hp > 0).length;
   if(heroesRemaining === 0){
@@ -6407,20 +6487,52 @@ function finishLevel(outcome){
   if(gameState !== "playing") return;
   playSfx(outcome === "win" ? "win" : "lose");
   if(outcome === "win"){
-    score += (ammoTotal - ammoUsed) * 30; 
+    const isFinalLevel = levelIndex === TOTAL_LEVELS - 1;
+    const isGodLevel = !isFinalLevel && (levelIndex + 1) % 100 === 0;
+    const isDemonLevel = !isFinalLevel && !isGodLevel && (levelIndex + 1) % 20 === 0;
+    const isBossLevel = !isFinalLevel && !isGodLevel && !isDemonLevel && (levelIndex + 1) % 5 === 0;
+
+    // 彈藥效率:評等決定倍率,再乘上剩餘彈藥的線性加分
+    const ammoLeft = ammoTotal - ammoUsed;
+    const savedRatio = ammoTotal > 0 ? ammoLeft / ammoTotal : 0;
+    let ammoRank, ammoMult;
+    if(savedRatio >= 0.5){ ammoRank = "SS"; ammoMult = 2.0; }
+    else if(savedRatio >= 0.3){ ammoRank = "S"; ammoMult = 1.6; }
+    else if(savedRatio >= 0.15){ ammoRank = "A"; ammoMult = 1.3; }
+    else if(savedRatio > 0){ ammoRank = "B"; ammoMult = 1.1; }
+    else { ammoRank = "C"; ammoMult = 1.0; }
+    const ammoBonus = Math.round(ammoLeft * 30 * ammoMult);
+
+    // 連擊加成:整關所有發射過程中,每次技能連鎖累計的加分
+    const comboBonus = Math.round(comboBonusAccum);
+
+    // 完美通關:整關每一發彈弓都至少打死一隻勇者,沒有空砲彈
+    const perfectClear = !levelHadMiss && ammoUsed > 0;
+    const perfectBonus = perfectClear
+      ? (isFinalLevel ? 3000 : (isGodLevel ? 1500 : (isDemonLevel ? 800 : (isBossLevel ? 400 : 150))))
+      : 0;
+
+    const totalBonus = ammoBonus + comboBonus + perfectBonus;
+    score += totalBonus;
+    lastScoreBreakdown = {
+      killScore: levelKillScore,
+      ammoBonus, ammoRank, ammoMult,
+      comboBonus, maxCombo: levelMaxCombo,
+      perfectBonus, perfectClear,
+      total: score
+    };
+
     saveData.currentLevel = Math.max(saveData.currentLevel, levelIndex + 1);
     const prevHighScore = saveData.highScore || 0;
     saveData.highScore = Math.max(saveData.highScore, score);
     if(saveData.highScore > prevHighScore) lbAutoSubmit(saveData.highScore);
     checkAchievements();
-    const isFinalLevel = levelIndex === TOTAL_LEVELS - 1;
-    const isGodLevel = !isFinalLevel && (levelIndex + 1) % 100 === 0;
-    const isDemonLevel = !isFinalLevel && !isGodLevel && (levelIndex + 1) % 20 === 0;
-    const isBossLevel = !isFinalLevel && !isGodLevel && !isDemonLevel && (levelIndex + 1) % 5 === 0;
     lastCoinsEarned = isFinalLevel ? 50 : (isGodLevel ? 25 : (isDemonLevel ? 10 : (isBossLevel ? 3 : 1)));
     if(levelLuckActive) lastCoinsEarned *= 5;
     saveData.coins = (saveData.coins || 0) + lastCoinsEarned;
     writeSave();
+  } else {
+    lastScoreBreakdown = null;
   }
   if(outcome === "win" && levelIndex === TOTAL_LEVELS - 1){
     startCutscene(buildEndingScene(), () => showEndScreen(outcome));
