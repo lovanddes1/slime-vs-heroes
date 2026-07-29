@@ -2291,8 +2291,16 @@ function tr(key, vars){
 // Player-facing changelog, newest first. Plain language only - no technical
 // details. Every future revision must add a new entry here and bump
 // GAME_VERSION (and the filename).
-const GAME_VERSION = "1.9.0";
+const GAME_VERSION = "1.9.1";
 const CHANGELOG = [
+  { ver: "1.9.1",
+    zh: [
+      "修正打字特訓一般小兵的身形比例:之前誤用了寬44、高110的拉長比例,跟本體遊戲實際的Q版矮胖比例(寬高接近1:1)不一致,難怪側面看起來變長;現在改回跟本體遊戲一致的比例,兩邊看起來應該一樣可愛了"
+    ],
+    en: [
+      "Fixed the regular Typing Practice minions' proportions: they were accidentally using a stretched 44-wide by 110-tall ratio instead of the main game's actual short, chibi proportions (roughly 1:1) - which is why the side view looked elongated. Now matches the main game exactly"
+    ]
+  },
   { ver: "1.9.0",
     zh: [
       "打字特訓的一般小兵不再全部都只是走過來站著,改依職業分成近戰/遠程兩種行為(呼應本體遊戲的職業設計):",
@@ -4725,7 +4733,7 @@ function spawnTypingEnemy(){
   const ranged = !!TYPING_RANGED_CLASSES[heroClass];
   tp.enemy = Object.assign({
     x: ranged ? W*(heroClass === "mage" ? 0.78 : 0.7) : W - 40,
-    bottom: GROUND_Y, w:44, h:110, hp:10, maxhp:10,
+    bottom: GROUND_Y, w:38, h:44, hp:10, maxhp:10,
     heroClass, bornAt: performance.now(),
     persistent:false, hitsLeft: 1, ranged,
     nextAttackAt: Infinity, // melee: set once it reaches the danger zone
@@ -5212,7 +5220,7 @@ function drawTypingScene(){
     drawHpBar(tp.enemy);
     levelIndex = savedLevelIndex;
     const hx = tp.enemy.x, top = tp.enemy.bottom - tp.enemy.h;
-    drawPromptLabel(tp.enemy, hx, top - (tp.enemy.word ? 26 : 30));
+    drawPromptLabel(tp.enemy, hx, top - tp.enemy.h*0.6 - (tp.enemy.word ? 10 : 14));
     if(tp.enemy.ranged && tp.enemy.shot){
       drawTypingMinionShot(tp.enemy, tp.enemy.shot, now);
     }
