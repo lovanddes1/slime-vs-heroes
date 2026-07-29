@@ -2310,8 +2310,96 @@ function tr(key, vars){
 // Player-facing changelog, newest first. Plain language only - no technical
 // details. Every future revision must add a new entry here and bump
 // GAME_VERSION (and the filename).
-const GAME_VERSION = "1.10.0";
+const GAME_VERSION = "1.13.1";
 const CHANGELOG = [
+  { ver: "1.13.1",
+    zh: [
+      "小王/魔王/主神的自我復活加了黑化設定:復活後外觀會變暗、長出發紅光的雙眼,身上纏繞著紫黑色的邪氣光環(呼應遊戲『討伐邪惡史萊姆』故事線的黑化梗)",
+      "自我復活的瞬間,如果場上還有其他存活的小兵,王會先『吞噬』他們吸收血量(那些小兵當場倒下、不計分數),吸收到的血量會加到自己的復活血量上;吞噬完緊接著就用復活小兵的技能,把剛剛吞掉的那些小兵也一起復活,變成跟王一樣黑化的惡魔小兵",
+      "平常那招定期『復活小兵』也一起套用黑化外觀,場面看起來會更統一"
+    ],
+    en: [
+      "Boss self-revival now comes with a corruption twist: on reviving, its look darkens, its eyes glow red, and a purple-black aura wreaths its body (tying into the game's 'slaying the evil slime' story turning the tables)",
+      "The instant it self-revives, if any other minions are still alive on the field, the boss devours them first for bonus HP (they drop on the spot with no score awarded) - then immediately uses its revive-minion move on those very same fallen minions, bringing them back as corrupted demons at its side",
+      "The regular periodic 'revive a minion' move now applies the same corrupted look too, for a consistent theme"
+    ]
+  },
+  { ver: "1.13.0",
+    zh: [
+      "小王/魔王/主神(第六天魔神王除外)終於有主動技能了,不再只有防守用的力場:",
+      "小王(3招):震退衝擊波、自我復活(一次)、復活小兵",
+      "魔王(4招):震退衝擊波、箭雨、自我復活(一次)、復活小兵",
+      "主神(5招):震退衝擊波、箭雨、禁錮力場(範圍減速)、自我復活(一次)、復活小兵",
+      "自我復活是保底一次:血量歸零時如果還沒用過,會直接復活到一定比例血量並有大動靜(閃光+震動+『復活!』字樣),同一場戰鬥只會發生一次;復活小兵則是每隔一段時間,把場上已經被打死的小兵挑一隻救回來,等級越高的王復活越頻繁"
+    ],
+    en: [
+      "Minibosses/demon lords/archons (not the final boss) finally have active skills instead of just a defensive barrier:",
+      "Miniboss (3 moves): knockback shockwave, self-revival (once), revive a minion",
+      "Demon Lord (4 moves): knockback shockwave, arrow rain, self-revival (once), revive a minion",
+      "Archon (5 moves): knockback shockwave, arrow rain, binding field (area slow), self-revival (once), revive a minion",
+      "Self-revival is a guaranteed one-time save: if it hasn't been used yet when HP hits 0, the boss revives at partial HP with a big flash/shake/'Revived!' moment instead of dying - only happens once per fight. Revive-minion periodically brings back one already-defeated minion on the field; the higher the tier, the more often it happens"
+    ]
+  },
+  { ver: "1.12.0",
+    zh: [
+      "新增「精英怪」:沒有小王/魔王/主神的一般關卡,現在會從裡面隨機挑一隻小兵升級成精英——體型變大(1.7倍)、血量大幅提高(3.2倍)、頭上有頂金色皇冠+淡淡的金色光環,一眼就認得出來",
+      "精英怪的職業技能也整組強化:冷卻更短、威力更強(推力/減速/格擋時間都加碼)、感應史萊姆的距離也更遠,讓它真的像隊伍裡的頭頭,而不只是變大的沙包"
+    ],
+    en: [
+      "Added Elites: a plain level with no miniboss/demon/archon now randomly promotes one of its regular minions to an Elite - bigger (1.7x), noticeably tougher (3.2x HP), with a small gold crown and a faint golden aura so it's instantly recognizable",
+      "An Elite's class skill is boosted across the board too - shorter cooldown, stronger effect (more knockback/slow/longer block), and it notices the slime from farther away - so it actually feels like the squad's leader instead of just a bigger punching bag"
+    ]
+  },
+  { ver: "1.11.4",
+    zh: [
+      "蓄力中(拉弓/唸咒/蹲下震退)或騎士舉盾格擋中的英雄,現在保證撐得住——就算這段時間血量被打到 0 以下,也會鎖在剩 1 滴血,一定會撐到技能真正發動才會死,不會再『技能還沒放出來就領盒飯』",
+      "技能冷卻時間大幅縮短(騎士/弓兵幾乎砍半、法師/坦克更多),發動頻率會明顯變高",
+      "技能威力全面加強:弓兵箭矢/坦克震退的擊退力道提高、法師減速力場範圍變大也更黏、騎士格擋跟蓄力硬撐的減傷都拉高到八成",
+      "交戰距離(要多近才會出手)也稍微放寬,讓技能更常有機會被觸發"
+    ],
+    en: [
+      "A hero mid-wind-up (drawing the bow, chanting, crouching for the slam) or a knight actively blocking is now guaranteed to survive - even if it would drop to 0 HP or below during that window, it's locked at 1 HP until the skill actually fires, so it can no longer die before ever using its move",
+      "Skill cooldowns are cut substantially (knight/archer nearly halved, mage/tank even more), so skills trigger noticeably more often",
+      "Skill power increased across the board: archer/tank knockback force is stronger, the mage's slow field is bigger and stickier, and both the knight's block and the wind-up brace now cut incoming damage by 80%",
+      "Engagement range (how close the slime needs to be before a hero commits) is slightly wider too, giving skills more chances to actually trigger"
+    ]
+  },
+  { ver: "1.11.3",
+    zh: [
+      "找到真正的原因了:上一版加的『史萊姆要在範圍內才發動技能』那段程式,判斷距離時誤用了勇者物件根本沒有的欄位,導致算出來的距離永遠是無效值,判斷永遠是『不在範圍內』——等於把技能整個鎖死,難怪完全看不到任何技能發動。這次是抓錯字,不是再調參數,已經修正,技能應該終於會正常出現了"
+    ],
+    en: [
+      "Found the actual bug: the 'only fire when the slime is in range' check added last version was reading a field that hero objects don't actually have, so the computed distance was always invalid and the check always came back 'out of range' - permanently locking every skill out, which is why nothing was firing at all. This was a real coding mistake, not another round of tuning; it's fixed now and skills should finally show up"
+    ]
+  },
+  { ver: "1.11.2",
+    zh: [
+      "修正小兵技能常常還沒放出來就被打死的問題,原因抓到了兩個:(1) 遊戲每幀是先算史萊姆物理碰撞、才算英雄要不要進入蓄力,導致史萊姆一靠近命中的同一下,英雄根本還沒進入蓄力狀態,護盾/減傷完全來不及生效——現在改成先判斷英雄狀態再算碰撞,順序對了;(2) 蓄力中的英雄(拉弓/唸咒/蹲下震退)現在會硬撐,受到的傷害大減到只剩兩成,撐過這一下才有機會真的把技能放出來(被打中會跳出『硬撐!』字樣)",
+      "沒有直接調高小兵血量——血量是牽動全遊戲難度節奏的數值,這次先用上面兩個對症下藥的修正,如果實際玩起來還是常常放不出技能,再回來調血量"
+    ],
+    en: [
+      "Fixed minions frequently dying before ever getting their skill off. Found two causes: (1) each frame resolved the slime's physics collision BEFORE deciding whether a hero should start its wind-up, so the exact hit that brought the slime into range often landed before the hero's brace/shield ever engaged - now hero state is decided first, so the timing lines up; (2) a hero actively winding up its skill (drawing the bow, chanting, crouching for the slam) now visibly braces for the hit, taking only 20% of the normal damage so it survives long enough to actually cast (shows a 'Braced!' pop-up when it happens)",
+      "Did not just raise minion HP outright - HP is a lever that touches the whole game's difficulty pacing, so this pass targets the actual cause first; if skills are still getting skipped in practice, HP is the next thing to tune"
+    ]
+  },
+  { ver: "1.11.1",
+    zh: [
+      "修正技能亂發動的問題:遠程(弓兵/法師)現在會等史萊姆進入合理射程才開始蓄力/開火,不會對著空氣或史萊姆在螢幕另一端時也發動;近戰(騎士/坦克)也改成等史萊姆真的靠近才舉盾/蓄力震退,不會對著空氣揮空技能。冷卻好了但史萊姆不在附近時,會持續等待,史萊姆一進到範圍內就會立刻出手"
+    ],
+    en: [
+      "Fixed skills firing into empty air: ranged classes (archer/mage) now wait until the slime is actually within a plausible shot before winding up, instead of firing regardless of where the slime is; melee classes (knight/tank) likewise only raise their guard/wind up the slam once the slime is genuinely closing in. If the cooldown is ready but the slime isn't nearby, the hero just keeps waiting and fires the instant it comes into range"
+    ]
+  },
+  { ver: "1.11.0",
+    zh: [
+      "主遊戲的騎士/弓兵/法師/坦克現在幾乎一定會在史萊姆飛出去後很快就用出一次技能,不再常常淪為呆呆的活靶子(原本冷卻時間是隨機拖很長,常常史萊姆已經死了都還沒發動)",
+      "弓兵箭矢命中、坦克震退命中、法師減速力場第一次生效的瞬間,現在都會觸發短暫的『子彈時間』(結合原本玩家自己連招用的零域效果+畫面頓一下的衝擊感):被打中動能瞬間變慢的那一刻,會有比較充裕的真實時間讓你馬上按出自己的技能(尤其是力量路線)把速度搶回來,把原本純粹被動的挨打時刻變成一次反擊機會"
+    ],
+    en: [
+      "The main game's knight/archer/mage/tank almost always get their skill off shortly after the slime launches now, instead of frequently sitting there as dead-weight targets (the old cooldown was randomly staggered so long that many fights ended before a hero ever used its move)",
+      "Getting hit by an archer's arrow, a tank's slam, or first entering a mage's slow field now triggers a brief 'bullet time' moment (the same Zero Realm slowdown used for your own skill combos, plus a punchy hit-stop): the instant your momentum gets sapped, real time slows down enough to immediately fire back one of your own route skills (POWER especially) and claw the speed right back - turning a normally passive moment into a counter-attack opportunity"
+    ]
+  },
   { ver: "1.10.0",
     zh: [
       "打字特訓選單新增難度切換:輕鬆/標準/挑戰,會一起影響每關要打的次數、敵人攻擊速度與傷害;「挑戰」難度下,單字類的關卡會改抽整個合併字庫,內容更豐富多變,不會老是同幾個單字",
@@ -3180,6 +3268,13 @@ function generateProceduralLevel(idx) {
     : isBossLevel
     ? (nextRandom() > 0.5 ? 3 : 2)
     : Math.min(4, 2 + Math.floor(idx / 15) + Math.floor(nextRandom() * 2));
+  // On a "plain" level with no dedicated miniboss/demon/archon, give the
+  // regular minions a squad leader instead of leaving them all identical -
+  // one random stack's topmost minion becomes an Elite (bigger, tougher,
+  // and a boosted version of its own class skill).
+  const isPlainLevel = !isBossLevel && !isDemonLevel && !isGodLevel;
+  const eliteStackIdx = isPlainLevel ? Math.floor(nextRandom() * numStacks) : -1;
+  let eliteAssigned = false;
   for (let i = 0; i < numStacks; i++) {
     const basePct = numStacks > 1 ? (i / (numStacks - 1)) : 0.5;
     const offset = (nextRandom() - 0.5) * (rangeX / numStacks * 0.3);
@@ -3267,9 +3362,12 @@ function generateProceduralLevel(idx) {
           bottom: currentBottom
         });
         currentBottom -= blockH;
-        const heroW = 34 + Math.floor(nextRandom() * 8);
-        const heroH = 40 + Math.floor(nextRandom() * 6);
-        const baseHeroHp = Math.min(25 + idx * 0.8, 120);
+        const isEliteHero = (i === eliteStackIdx && s === numStories - 1 && !eliteAssigned);
+        if(isEliteHero) eliteAssigned = true;
+        const eliteMult = isEliteHero ? 1.7 : 1;
+        const heroW = (34 + Math.floor(nextRandom() * 8)) * eliteMult;
+        const heroH = (40 + Math.floor(nextRandom() * 6)) * eliteMult;
+        const baseHeroHp = Math.min(25 + idx * 0.8, 120) * (isEliteHero ? 3.2 : 1);
         const heroMaxHp = Math.floor(baseHeroHp * (0.85 + nextRandom() * 0.3));
         heroes.push({
           x: stackX,
@@ -3278,7 +3376,8 @@ function generateProceduralLevel(idx) {
           hp: heroMaxHp,
           maxhp: heroMaxHp,
           bottom: currentBottom,
-          isBoss: false
+          isBoss: false,
+          isElite: isEliteHero
         });
         currentBottom -= heroH;
       }
@@ -4061,6 +4160,97 @@ function isDemonShieldActive(){
 }
 function isDamageNullified(obj){
   return !!(obj.isBoss && obj.hp > 0 && obj._barrierHp > 0);
+}
+// --- Active boss-tier skills (miniboss/demon/god) ---
+// The barrier above is purely defensive; this is the offensive kit that
+// makes a "王" feel like an active threat instead of just a passive shield.
+// Every tier always carries the same two signature moves — reviving itself
+// once, and periodically reviving a fallen minion — plus a growing set of
+// offensive skills as the tier goes up. The final boss keeps its own
+// separate FINAL_ASPECT kit and isn't touched by any of this.
+const BOSS_TIER_SKILLS = {
+  miniboss: { offense: ["slam"], reviveInterval: 14, cooldown: 3.2 },
+  demon:    { offense: ["slam", "arrowRain"], reviveInterval: 11, cooldown: 2.8 },
+  god:      { offense: ["slam", "arrowRain", "bindField"], reviveInterval: 8, cooldown: 2.3 },
+};
+const BOSS_REVIVE_FRAC = { miniboss: 0.5, demon: 0.45, god: 0.4 };
+function bossTierOf(h){
+  if(!h.isBoss || h.isFinal) return null;
+  if(h.isGod) return "god";
+  if(h.isDemon) return "demon";
+  return "miniboss";
+}
+function castBossSkill(h, skill, tier){
+  const cx = h.x, cy = h.bottom - h.h*0.5, top = h.bottom - h.h;
+  const scale = tier === "god" ? 1.9 : tier === "demon" ? 1.4 : 1;
+  if(skill === "slam"){
+    const radius = 230 * scale;
+    const dx = slime.x - cx, dy = slime.y - cy;
+    const dist = Math.sqrt(dx*dx + dy*dy);
+    if(dist <= radius && dist > 0.001){
+      slime.vx += (dx/dist) * 950 * scale;
+      slime.vy += (dy/dist) * 950 * scale - 120;
+      triggerEnemyImpactZeroRealm(slime.x, slime.y);
+      spawnFloatText(slime.x, slime.y - 20, "震退!", "#ff8a5a", true);
+    }
+    spawnShockwave(cx, cy, "#ff5a3c", radius, 0.5);
+    spawnShockwave(cx, cy, "#8a1c1c", radius*0.6, 0.35);
+    createImpactParticles(cx, cy, "#ff8a5a", 26);
+    screenShake = Math.min(screenShake + 12, 22);
+  } else if(skill === "arrowRain"){
+    const count = Math.round(3 * scale);
+    for(let i=0; i<count; i++){
+      const ox = cx + (Math.random()-0.5) * h.w * 1.6;
+      const oy = -30 - Math.random()*60;
+      const dx = slime.x - ox, dy = slime.y - oy;
+      const dist = Math.sqrt(dx*dx + dy*dy) || 1;
+      const spd = 620 * scale;
+      heroProjectiles.push({
+        x: ox, y: oy, vx: dx/dist*spd, vy: dy/dist*spd,
+        push: 420*scale, life: 2.2, owner: h, trail: [],
+      });
+    }
+    spawnFloatText(cx, top - 20, "箭雨!", "#ffdf8a", true);
+  } else if(skill === "bindField"){
+    heroFields.push({ x: slime.x, y: slime.y, r: 90*scale, t: 2.2, maxT: 2.2, slow: 5.5 });
+    spawnShockwave(slime.x, slime.y, "#8a5fd6", 90*scale, 0.5);
+    spawnFloatText(slime.x, slime.y - 20, "禁錮力場!", "#b478ff", true);
+  }
+}
+function tryReviveMinion(boss){
+  const candidates = heroes.filter(h => h !== boss && !h.isBoss && h.hp <= 0);
+  if(candidates.length === 0) return;
+  const target = candidates[Math.floor(Math.random()*candidates.length)];
+  target.hp = Math.max(1, Math.round(target.maxhp * 0.6));
+  target._counted = false;
+  target._corrupted = true;
+  createImpactParticles(target.x, target.bottom - target.h/2, "#8a3cd6", 24);
+  spawnShockwave(target.x, target.bottom - target.h/2, "#8a3cd6", target.w*1.6, 0.45);
+  spawnFloatText(target.x, target.bottom - target.h - 10, "黑化復活!", "#8a3cd6", false);
+  playSfx("zero", 0.4);
+}
+function updateBossSkills(dt){
+  if(!slime || slime.state !== "flying") return;
+  for(const h of heroes){
+    const tier = bossTierOf(h);
+    if(!tier || h.hp <= 0) continue;
+    const conf = BOSS_TIER_SKILLS[tier];
+    if(h._bossSkillT === undefined){
+      h._bossSkillT = 0.8 + Math.random()*0.8; // quick first move
+      h._bossReviveT = conf.reviveInterval * 0.6;
+    }
+    h._bossSkillT -= dt;
+    h._bossReviveT -= dt;
+    if(h._bossSkillT <= 0){
+      const skill = conf.offense[Math.floor(Math.random()*conf.offense.length)];
+      castBossSkill(h, skill, tier);
+      h._bossSkillT = conf.cooldown;
+    }
+    if(h._bossReviveT <= 0){
+      tryReviveMinion(h);
+      h._bossReviveT = conf.reviveInterval;
+    }
+  }
 }
 function getDemonBarrierBaseHp(demon){
   if(demon.isFinal) return 1100;
@@ -7217,6 +7407,11 @@ function resolveSlimeVsObject(obj, isHero){
   }
   const nullified = isHero && isDamageNullified(obj);
   const knightBlocking = isHero && obj.heroClass === "knight" && obj._blocking;
+  // A hero mid-wind-up on its own skill braces for the hit instead of dying
+  // before it ever gets to use it — the whole point of guaranteeing a skill
+  // goes off is undone if the slime just one-shots them the instant they
+  // start telegraphing.
+  const heroBracing = isHero && !knightBlocking && obj._skillPhase === "telegraph";
   const restitution = nullified ? 1.25 : (slime.bouncy ? 1.54 : (slime.heavy ? 0.12 :
     (slime._bounceBoostHits > 0 ? Math.min(getBounceRestitution() + 0.35, 1.5) : getBounceRestitution()))) *
     (knightBlocking ? 1.3 : 1);
@@ -7274,7 +7469,8 @@ function resolveSlimeVsObject(obj, isHero){
   }
   if(!obj._hitCooldown || obj._hitCooldown <= 0){
     let dmg = (isHero ? speed * HERO_DMG_MULT : speed * BLOCK_DMG_MULT) * getSlimeDamageMultiplier();
-    if(knightBlocking) dmg *= 0.3;
+    if(knightBlocking) dmg *= 0.2;
+    else if(heroBracing) dmg *= 0.2;
     if(slime.heavy) dmg *= 8;
     if(slime.giant) dmg *= 3;
     const isCrit = slime._guaranteedCritHits > 0 || Math.random() < getCritChance();
@@ -7283,6 +7479,11 @@ function resolveSlimeVsObject(obj, isHero){
       if(isHero) dmg = applyFrostArmor(obj, dmg, col.closestX, col.closestY);
       if(isHero) dmg = adjustFinalDamage(obj, dmg);
       obj.hp -= dmg;
+      if((knightBlocking || heroBracing) && obj.hp <= 0){
+        // guaranteed to survive through its own block/wind-up — the whole
+        // point of the guard/telegraph is undone if it can still die mid-cast
+        obj.hp = 1;
+      }
       obj._hitCooldown = 0.35;
       if(isHero) maybeDesertBurrow(obj);
       if(isHero) applyFinalAspectOnHit(obj, col.closestX, col.closestY);
@@ -7298,6 +7499,9 @@ function resolveSlimeVsObject(obj, isHero){
         createImpactParticles(col.closestX, col.closestY, "#eaf4ff", 14);
         spawnShockwave(col.closestX, col.closestY, "#cfe6ff", 60, 0.3);
         playSfx("deflect", 0.8);
+      } else if(heroBracing){
+        spawnFloatText(col.closestX, col.closestY - 28, "硬撐!", "#ffd8a0", true);
+        createImpactParticles(col.closestX, col.closestY, "#ffe9c0", 10);
       }
       playSfx(isHero ? "hitHero" : "hitBlock", Math.min(speed / 1500, 1));
       if(isCrit) playSfx("critHit");
@@ -7627,6 +7831,43 @@ function checkDeaths(){
   }
   let heroesRemaining = 0;
   for(const h of heroes){
+    if(h.hp <= 0 && !h._counted){
+      const tier = bossTierOf(h);
+      if(tier && !h._usedRevive){
+        // The signature "self-revival" move: instead of dying, the boss
+        // claws its way back as a corrupted demon version of itself. If any
+        // other heroes are still alive on the field, it devours them first
+        // for bonus HP, then immediately revives THEM too as demons.
+        h._usedRevive = true;
+        h._corrupted = true;
+        const victims = heroes.filter(o => o !== h && o.hp > 0 && !o.isBoss);
+        let devourBonus = 0;
+        for(const v of victims){
+          devourBonus += v.maxhp * 0.5;
+          createImpactParticles(v.x, v.bottom - v.h/2, "#5a1050", 16);
+          v.hp = 0;
+          v._counted = true; // devoured, not a normal kill — no score/explosion
+        }
+        const baseRevive = h.maxhp * (BOSS_REVIVE_FRAC[tier] || 0.45);
+        h.hp = Math.max(1, Math.round(baseRevive + devourBonus));
+        spawnFloatText(h.x, h.bottom - h.h*0.8, victims.length ? "黑化復活!" : "復活!", "#c060ff", true);
+        createImpactParticles(h.x, h.bottom - h.h*0.5, "#c060ff", 44);
+        spawnShockwave(h.x, h.bottom - h.h*0.5, "#c060ff", h.w*2, 0.6);
+        spawnShockwave(h.x, h.bottom - h.h*0.5, "#1a0a20", h.w*1.3, 0.45);
+        screenShake = Math.min(screenShake + 16, 24);
+        triggerHitstop(120);
+        playSfx("zero");
+        // the revive-minion signature move, immediately: every hero it just
+        // devoured comes back too, corrupted into a demon at its side.
+        for(const v of victims){
+          v.hp = Math.max(1, Math.round(v.maxhp * 0.5));
+          v._corrupted = true;
+          v._counted = false;
+          createImpactParticles(v.x, v.bottom - v.h/2, "#8a3cd6", 20);
+          spawnShockwave(v.x, v.bottom - v.h/2, "#8a3cd6", v.w*1.4, 0.4);
+        }
+      }
+    }
     if(h.hp > 0) heroesRemaining++;
     else if(!h._counted){
       h._counted = true;
@@ -7921,36 +8162,77 @@ function refreshWorldGimmickForShot(){
 // only runs while a shot is actually in the air (slime.state === "flying"),
 // so it never interferes with aiming.
 const HERO_SKILL_CONF = {
-  knight: { cooldown:2.6, blockDur:1.0 },
-  archer: { cooldown:2.2, telegraph:0.4,  arrowSpeed:900, push:650 },
-  mage:   { cooldown:3.6, telegraph:0.9,  fieldDur:1.8, fieldRadius:115, slowFactor:4.5 },
-  tank:   { cooldown:4.2, telegraph:0.55, slamRadius:150, push:800 },
+  knight: { cooldown:1.5, blockDur:1.0 },
+  archer: { cooldown:1.3, telegraph:0.4,  arrowSpeed:950, push:950 },
+  mage:   { cooldown:2.1, telegraph:0.8,  fieldDur:1.8, fieldRadius:140, slowFactor:6.5 },
+  tank:   { cooldown:2.5, telegraph:0.5,  slamRadius:160, push:1050 },
 };
+// Elites (see generateProceduralLevel) get a boosted version of their
+// class's skill — shorter cooldown, harder-hitting, longer reach — so they
+// read as an actual squad leader, not just a bigger HP sponge.
+function effectiveHeroSkillConf(h){
+  const conf = HERO_SKILL_CONF[h.heroClass];
+  if(!conf || !h.isElite) return conf;
+  if(h._eliteConf) return h._eliteConf; // cache per hero instead of rebuilding every frame
+  const boosted = Object.assign({}, conf, { cooldown: conf.cooldown * 0.65 });
+  if(boosted.push) boosted.push *= 1.4;
+  if(boosted.slowFactor) boosted.slowFactor *= 1.3;
+  if(boosted.fieldRadius) boosted.fieldRadius *= 1.25;
+  if(boosted.slamRadius) boosted.slamRadius *= 1.2;
+  if(boosted.blockDur) boosted.blockDur *= 1.3;
+  h._eliteConf = boosted;
+  return boosted;
+}
 function initHeroSkillState(h){
   const conf = HERO_SKILL_CONF[h.heroClass];
   if(!conf) return;
   h._skillPhase = "cooldown";
-  h._skillT = conf.cooldown * (0.4 + Math.random()*0.6); // stagger so classes don't all sync up
+  // Guarantee every hero gets its move off early instead of sitting there as
+  // dead weight: a short, low-variance wind-up rather than a long random
+  // stagger across the whole cooldown, so a fight rarely ends before every
+  // class has actually used its skill at least once.
+  h._skillT = 0.25 + Math.random()*0.35;
   h._blocking = false;
+}
+// Ranged classes only start winding up once the slime is actually within a
+// plausible shot; melee classes only raise their guard/slam once the slime
+// is genuinely closing in — so a skill going off always means something
+// real is about to happen, instead of firing on a blind timer into empty air.
+const HERO_ENGAGE_RANGE = { knight:260, tank:240, archer:620, mage:580 };
+function heroCanEngage(h){
+  if(!slime) return false;
+  const range = (HERO_ENGAGE_RANGE[h.heroClass] || 400) * (h.isElite ? 1.25 : 1);
+  const hy = h.bottom - h.h/2; // heroes store bottom+h, not a y field
+  const dx = slime.x - h.x, dy = slime.y - hy;
+  return (dx*dx + dy*dy) <= range*range;
 }
 function updateHeroSkills(dt){
   if(!slime || slime.state !== "flying") { updateHeroProjectilesAndFields(dt); return; }
   for(const h of heroes){
-    const conf = HERO_SKILL_CONF[h.heroClass];
+    const conf = effectiveHeroSkillConf(h);
     if(!conf || h.hp <= 0 || isHeroHidden(h)) continue;
     if(h._skillT === undefined) initHeroSkillState(h);
     h._skillT -= dt;
     if(h.heroClass === "knight"){
-      if(h._skillT <= 0){
-        h._blocking = !h._blocking;
-        h._skillT = h._blocking ? conf.blockDur : conf.cooldown;
-        if(h._blocking) playSfx("deflect");
+      if(h._blocking){
+        if(h._skillT <= 0){
+          h._blocking = false;
+          h._skillT = 0; // eligible to raise again the instant it's needed
+        }
+      } else if(h._skillT <= 0 && heroCanEngage(h)){
+        h._blocking = true;
+        h._skillT = conf.blockDur;
+        playSfx("deflect");
       }
       continue;
     }
     if(h._skillPhase === "cooldown" && h._skillT <= 0){
-      h._skillPhase = "telegraph";
-      h._skillT = conf.telegraph;
+      if(heroCanEngage(h)){
+        h._skillPhase = "telegraph";
+        h._skillT = conf.telegraph;
+      }
+      // else: cooldown's already up but nothing worth aiming at yet — keep
+      // checking every frame until the slime is actually in range.
     } else if(h._skillPhase === "telegraph" && h._skillT <= 0){
       fireHeroSkill(h, conf);
       h._skillPhase = "cooldown";
@@ -7984,6 +8266,7 @@ function fireHeroSkill(h, conf){
       slime.vx += dx/dist * conf.push;
       slime.vy += dy/dist * conf.push - 100;
       spawnFloatText(slime.x, slime.y - 20, "震退!", "#e8a25c", true);
+      triggerEnemyImpactZeroRealm(slime.x, slime.y);
     }
     spawnShockwave(originX, h.bottom, "#8a6a4a", conf.slamRadius, 0.45);
     spawnShockwave(originX, h.bottom, "#e8a25c", conf.slamRadius * 0.55, 0.3);
@@ -7991,6 +8274,16 @@ function fireHeroSkill(h, conf){
     createImpactParticles(originX, h.bottom, "#e8a25c", 10);
     screenShake = Math.min(screenShake + 10, 18);
   }
+}
+// When an enemy skill actually robs the slime of momentum (arrow, slam, or
+// entering a slow field), give the player a proper "counter" moment instead
+// of just quietly losing speed: a hitstop punch + a short Zero-Realm-style
+// slowdown, so there's real wall-clock time to tap a route skill (POWER, for
+// instance) and immediately claw the momentum back.
+function triggerEnemyImpactZeroRealm(x, y){
+  triggerHitstop(70);
+  enterZeroRealm(1, x, y);
+  spawnShockwave(x, y, "#ff9d6a", 70, 0.3);
 }
 function updateHeroProjectilesAndFields(dt){
   for(let i = heroProjectiles.length - 1; i >= 0; i--){
@@ -8014,6 +8307,7 @@ function updateHeroProjectilesAndFields(dt){
       spawnFloatText(p.x, p.y - 16, "擊退!", "#fff6d8", true);
       screenShake = Math.min(screenShake + 5, 14);
       playSfx("hitBlock", 0.6);
+      triggerEnemyImpactZeroRealm(p.x, p.y);
       heroProjectiles.splice(i, 1);
     } else if(p.life <= 0 || p.x < -40 || p.x > W+40 || p.y < -40 || p.y > H+40){
       heroProjectiles.splice(i, 1);
@@ -8026,6 +8320,10 @@ function updateHeroProjectilesAndFields(dt){
     if(slime && slime.state === "flying"){
       const dx = slime.x - f.x, dy = slime.y - f.y;
       if(dx*dx + dy*dy <= f.r*f.r){
+        if(!f.triggered){
+          f.triggered = true;
+          triggerEnemyImpactZeroRealm(slime.x, slime.y);
+        }
         const drag = Math.max(0, 1 - f.slow * dt);
         slime.vx *= drag; slime.vy *= drag;
       }
@@ -9050,6 +9348,12 @@ function drawHero(h){
   } else {
     drawMinionHero(h, cx, top, dmgFrac);
   }
+  if(h.isElite){
+    drawEliteMarker(h, cx, top);
+  }
+  if(h._corrupted){
+    drawCorruptionOverlay(h, cx, top);
+  }
   if(h._rageFlash > 0){
     const t = Math.min(1, h._rageFlash / 0.55);
     ctx.save();
@@ -9063,6 +9367,69 @@ function drawHero(h){
     ctx.fill();
     ctx.restore();
   }
+  ctx.restore();
+}
+function drawCorruptionOverlay(h, cx, top){
+  // Darkens whatever was just drawn (multiply blend, so it works on any of
+  // the class/boss silhouettes without needing a separate demon sprite),
+  // then adds glowing red eyes and a sinister pulsing aura on top.
+  ctx.save();
+  ctx.globalCompositeOperation = "multiply";
+  ctx.globalAlpha = 0.75;
+  roundRectPath(cx - h.w*0.55, top, h.w*1.1, h.h, 6);
+  ctx.fillStyle = "#3a1030";
+  ctx.fill();
+  ctx.restore();
+  const pulse = 0.5 + Math.sin(performance.now()/180)*0.5;
+  ctx.save();
+  ctx.globalAlpha = 0.28 + pulse*0.18;
+  const grad = ctx.createRadialGradient(cx, top + h.h*0.5, h.w*0.15, cx, top + h.h*0.5, h.w*1.2);
+  grad.addColorStop(0, "rgba(140,20,160,0.75)");
+  grad.addColorStop(1, "rgba(140,20,160,0)");
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  ctx.arc(cx, top + h.h*0.5, h.w*1.2, 0, Math.PI*2);
+  ctx.fill();
+  ctx.restore();
+  const headY = top + h.h*0.16;
+  ctx.save();
+  ctx.fillStyle = "#ff2a2a";
+  ctx.shadowColor = "#ff2a2a";
+  ctx.shadowBlur = 6;
+  ctx.beginPath(); ctx.arc(cx - h.w*0.1, headY, Math.max(1.5, h.w*0.045), 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(cx + h.w*0.1, headY, Math.max(1.5, h.w*0.045), 0, Math.PI*2); ctx.fill();
+  ctx.shadowBlur = 0;
+  ctx.restore();
+}
+function drawEliteMarker(h, cx, top){
+  const pulse = 0.6 + Math.sin(performance.now()/260)*0.4;
+  ctx.save();
+  ctx.globalAlpha = 0.22 + pulse*0.14;
+  const grad = ctx.createRadialGradient(cx, h.bottom - h.h*0.5, h.w*0.2, cx, h.bottom - h.h*0.5, h.w*1.15);
+  grad.addColorStop(0, "rgba(255,215,0,0.55)");
+  grad.addColorStop(1, "rgba(255,215,0,0)");
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  ctx.arc(cx, h.bottom - h.h*0.5, h.w*1.15, 0, Math.PI*2);
+  ctx.fill();
+  ctx.restore();
+  // small crown above the head marking it as the squad leader
+  const headY = top + h.h*0.16 - h.w*0.32 - 6;
+  ctx.save();
+  ctx.fillStyle = "#ffd700";
+  ctx.strokeStyle = "#8a6500";
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(cx - h.w*0.22, headY + 6);
+  ctx.lineTo(cx - h.w*0.22, headY);
+  ctx.lineTo(cx - h.w*0.1, headY + 5);
+  ctx.lineTo(cx, headY - 3);
+  ctx.lineTo(cx + h.w*0.1, headY + 5);
+  ctx.lineTo(cx + h.w*0.22, headY);
+  ctx.lineTo(cx + h.w*0.22, headY + 6);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
   ctx.restore();
 }
 function drawMinionHero(h, cx, top, dmgFrac){
@@ -10278,11 +10645,12 @@ function loop(ts){
   }
   if(gameState === "playing"){
     updateKeyboardAim(rawDt); // keyboard aiming runs in real time, not game time
+    updateHeroSkills(dt); // decide engagement/telegraph BEFORE the slime moves/collides this frame, so a hero already bracing gets its damage reduction on the very hit that reached it
+    updateBossSkills(dt);
     stepSlime(dt);
     updateStructurePhysics(dt);
     updateFinalRegen(dt);
     stepBarrierBossAura(dt);
-    updateHeroSkills(dt);
   }
   if(gameState === "typing"){
     updateTyping(rawDt);
