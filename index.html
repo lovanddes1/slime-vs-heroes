@@ -2292,8 +2292,20 @@ function tr(key, vars){
 // Player-facing changelog, newest first. Plain language only - no technical
 // details. Every future revision must add a new entry here and bump
 // GAME_VERSION (and the filename).
-const GAME_VERSION = "1.6.0";
+const GAME_VERSION = "1.7.0";
 const CHANGELOG = [
+  { ver: "1.7.0",
+    zh: [
+      "打字特訓王戰美術加強:王的體型再放大一圈、登場時有白光衝擊波,每次施放法球齊射會有一瞬間的閃光,魔王/最終王身邊會不定期劈過一道能量閃電,光環跟飄浮碎光數量也依小王/魔王/最終王的等級增加,魄力感拉高不少",
+      "主遊戲四職業技能特效整個換掉,不再是容易被看成泡泡/鼻屎的圓點:騎士現在是真的盾牌造型(金屬漸層+十字紋章),弓兵是拉弓瞄準線+發光箭矢拖尾,法師是會旋轉符文的法陣圓環,坦克是地面裂痕特效;技能發動/命中時都會跳出文字提示(格擋!/射擊!/減速力場!/震退!)",
+      "弓兵箭矢擊退力道、坦克震退力道、法師減速強度都大幅提高,現在物理上真的感覺得到差異,不會被史萊姆原本的高速度蓋過去"
+    ],
+    en: [
+      "Beefed up boss-fight art in Typing Practice: bosses are noticeably bigger again, there's a white shockwave burst when one first appears, a brief screen flash every time it casts an orb volley, boss/final bosses occasionally arc a lightning bolt nearby, and the aura rings/embers scale up with how high-stakes the fight is",
+      "Completely redid the main game's class skill visuals so they no longer read as random bubbles: the knight's block is now an actual shield shape (metallic gradient, gold cross emblem), the archer draws a visible bowstring and fires a glowing arrow with a trail, the mage's field is a rotating rune circle, and the tank's slam shows real ground cracks. Casting/landing a skill now also pops a short label (Block!/Shoot!/Slow Field!/Knockback!)",
+      "Archer knockback, tank slam force, and mage slow strength are all substantially higher now, so each class's effect is physically noticeable instead of getting lost in the slime's normal high speeds"
+    ]
+  },
   { ver: "1.6.0",
     zh: [
       "王戰法球軌跡改成弧線:不再是直線衝過來,而是先往旁邊繞出去一圈,再緩緩轉彎飛向玩家,而且飛行時間拉長不少,反應時間變多了",
@@ -4613,6 +4625,7 @@ function typingSpawnWave(){
   const top = e.bottom - e.h;
   const chestX = e.x, chestY = top + e.h*0.38;
   const now = performance.now();
+  e.castFlashUntil = now + 260;
   targets.forEach((target, i) => {
     const side = i % 2 === 0 ? -1 : 1;
     const spread = 1 + Math.floor(i/2) * 0.4;
@@ -4627,20 +4640,21 @@ function typingSpawnWave(){
     }, target));
   });
 }
-const TYPING_BOSS_HEIGHT_FRAC = { miniboss:0.5, boss:0.68, final:0.86 };
+const TYPING_BOSS_HEIGHT_FRAC = { miniboss:0.62, boss:0.82, final:1.0 };
 const TYPING_BOSS_ORB_COLOR = { miniboss:"#ff9d3c", boss:"#ff3c5c", final:"#ffe86b" };
 function spawnTypingEnemy(){
   if(tp.kind !== "normal"){
     // First-person boss/miniboss/final encounter: one huge, stationary foe
     // that casts spell-orb waves at the camera instead of walking in.
     const hFrac = TYPING_BOSS_HEIGHT_FRAC[tp.kind];
-    const h = H * hFrac, w = h * 0.42;
+    const h = H * hFrac, w = h * 0.55;
     const now = performance.now();
     tp.enemy = {
-      x: W/2, bottom: H*0.94, w, h, hp:10, maxhp:10,
+      x: W/2, bottom: H*0.98, w, h, hp:10, maxhp:10,
       heroClass:"boss", bornAt: now,
       persistent:true, hitsLeft: tp.conf.killGoal,
-      nextWaveAt: now + 600, _waveScheduled: true,
+      nextWaveAt: now + 900, _waveScheduled: true,
+      entranceUntil: now + 550,
     };
     tp.orbs = [];
     return;
@@ -4862,6 +4876,100 @@ function drawPromptLabel(e, cx, cy){
     ctx.shadowBlur = 0;
   }
 }
+const TYPING_BOSS_AMBIENT_COLOR = { miniboss:"#ff9d3c", boss:"#ff3c5c", final:"#ffe86b" };
+const TYPING_BOSS_INTENSITY = { miniboss:1, boss:1.5, final:2.2 };
+function drawBossAmbientFx(e, kind, now){
+  const color = TYPING_BOSS_AMBIENT_COLOR[kind] || "#ff9d3c";
+  const intensity = TYPING_BOSS_INTENSITY[kind] || 1;
+  const cx = e.x, groundY = e.bottom;
+  // pulsing rune rings on the ground beneath the boss — more of them, and
+  // brighter, the higher-stakes the fight is
+  const pulse = 0.5 + Math.sin(now/450)*0.5;
+  const ringCount = kind === "final" ? 5 : (kind === "boss" ? 4 : 3);
+  for(let ring=0; ring<ringCount; ring++){
+    const rr = e.w*(0.55 + ring*0.3) * (0.9 + pulse*0.15);
+    ctx.save();
+    ctx.globalAlpha = Math.min(0.5, (0.2 - ring*0.03 + pulse*0.06) * intensity);
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 3 - ring*0.5;
+    ctx.beginPath();
+    ctx.ellipse(cx, groundY - 4, rr, rr*0.2, 0, 0, Math.PI*2);
+    ctx.stroke();
+    ctx.restore();
+  }
+  // embers/motes rising and drifting past the boss's silhouette
+  const emberCount = Math.round(18 * intensity);
+  for(let i=0;i<emberCount;i++){
+    const seed = i*137.5;
+    const cycle = 3000 + (i%5)*450;
+    const phase = ((now + seed*23) % cycle) / cycle; // loops 0..1
+    const ex = cx + Math.sin(seed + now/1500) * e.w * (0.35 + phase*0.75);
+    const ey = groundY - phase*e.h*1.2;
+    const alpha = Math.sin(phase*Math.PI) * 0.6;
+    if(alpha <= 0.02) continue;
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.arc(ex, ey, 2 + (i%3), 0, Math.PI*2);
+    ctx.fill();
+    ctx.restore();
+  }
+  // crackling energy bolts around boss/final — pure menace, no gameplay effect
+  if(kind === "boss" || kind === "final"){
+    const boltCycle = 1400;
+    const boltPhase = (now % boltCycle) / boltCycle;
+    if(boltPhase < 0.12){
+      const boltA = (now % boltCycle) * 0.0137 + cx; // deterministic per-loop angle
+      const seedAngle = Math.sin(boltA) * Math.PI;
+      const topY = groundY - e.h*(1.05 + Math.sin(cx)*0.05);
+      ctx.save();
+      ctx.globalAlpha = (1 - boltPhase/0.12) * 0.8;
+      ctx.strokeStyle = kind === "final" ? "#fff3b0" : "#ff8a8a";
+      ctx.lineWidth = 2;
+      ctx.shadowColor = color; ctx.shadowBlur = 12;
+      let bx = cx + Math.cos(seedAngle)*e.w*0.7, by = topY;
+      ctx.beginPath(); ctx.moveTo(bx, by);
+      for(let s=0;s<4;s++){
+        bx += (Math.sin(seedAngle+s)*30);
+        by += e.h*0.18;
+        ctx.lineTo(bx, by);
+      }
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+      ctx.restore();
+    }
+  }
+  // one-shot entrance burst when the boss first appears
+  if(e.entranceUntil && now < e.entranceUntil){
+    const et = 1 - Math.max(0, e.entranceUntil - now) / 550;
+    ctx.save();
+    ctx.globalAlpha = Math.max(0, 1 - et) * 0.7;
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, W, H);
+    ctx.restore();
+    ctx.save();
+    ctx.globalAlpha = Math.max(0, 1 - et);
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 5;
+    ctx.beginPath();
+    ctx.ellipse(cx, groundY - e.h*0.4, e.w*(0.6+et*2.2), e.h*(0.3+et*1.1), 0, 0, Math.PI*2);
+    ctx.stroke();
+    ctx.restore();
+  }
+  // brief flash the instant a new orb wave is cast
+  if(e.castFlashUntil && now < e.castFlashUntil){
+    const ft = Math.max(0, e.castFlashUntil - now) / 260;
+    ctx.save();
+    ctx.globalAlpha = ft * 0.35;
+    const flashGrad = ctx.createRadialGradient(cx, groundY-e.h*0.5, 10, cx, groundY-e.h*0.5, e.w*1.5);
+    flashGrad.addColorStop(0, "#ffffff");
+    flashGrad.addColorStop(1, "rgba(255,255,255,0)");
+    ctx.fillStyle = flashGrad;
+    ctx.fillRect(0,0,W,H);
+    ctx.restore();
+  }
+}
 function drawTypingBossView(){
   const now = performance.now();
   // moody, close-up arena backdrop — no slime sprite (this IS its point of
@@ -4876,13 +4984,22 @@ function drawTypingBossView(){
 
   const e = tp.enemy;
   if(e){
+    drawBossAmbientFx(e, tp.kind, now);
     const savedLevelIndex = levelIndex;
     levelIndex = (tp.worldIdx || 0) * 20;
     const top = e.bottom - e.h;
     const dmgFrac = e.hp / e.maxhp;
+    // a slow "breathing" scale pulse (bigger on the final boss) so the huge
+    // sprite reads as alive and powerful rather than a static cutout.
+    const breathe = 1 + Math.sin(now/900) * (tp.kind === "final" ? 0.03 : 0.02);
+    ctx.save();
+    ctx.translate(e.x, e.bottom);
+    ctx.scale(breathe, breathe);
+    ctx.translate(-e.x, -e.bottom);
     if(tp.kind === "final") drawGodHero(e, e.x, top, dmgFrac);
     else if(tp.kind === "boss") drawDemonHero(e, e.x, top, dmgFrac);
     else drawBossHero(e, e.x, top, dmgFrac);
+    ctx.restore();
     levelIndex = savedLevelIndex;
 
     // boss "HP" bar (hits remaining) near the top of the screen
@@ -6910,6 +7027,12 @@ function resolveSlimeVsObject(obj, isHero){
         : (isHero ? (obj.isBoss ? "#ffd700" : "#f2c896") : "#a9673a");
       createImpactParticles(col.closestX, col.closestY, partColor, obj.isBoss ? 25 : (isCrit ? 20 : 12));
       if(isHero) spawnFloatText(col.closestX, col.closestY - 12, Math.round(dmg), isCrit ? "#ffe066" : "#ffffff", isCrit);
+      if(knightBlocking){
+        spawnFloatText(col.closestX, col.closestY - 28, "格擋!", "#cfe6ff", true);
+        createImpactParticles(col.closestX, col.closestY, "#eaf4ff", 14);
+        spawnShockwave(col.closestX, col.closestY, "#cfe6ff", 60, 0.3);
+        playSfx("deflect", 0.8);
+      }
       playSfx(isHero ? "hitHero" : "hitBlock", Math.min(speed / 1500, 1));
       if(isCrit) playSfx("critHit");
       if(slime.heavy) spawnShockwave(col.closestX, col.closestY, "#ffb347", 90, 0.4);
@@ -7533,9 +7656,9 @@ function refreshWorldGimmickForShot(){
 // so it never interferes with aiming.
 const HERO_SKILL_CONF = {
   knight: { cooldown:2.6, blockDur:1.0 },
-  archer: { cooldown:2.2, telegraph:0.35, arrowSpeed:820, push:230 },
-  mage:   { cooldown:3.6, telegraph:0.9,  fieldDur:1.6, fieldRadius:95, slowFactor:2.2 },
-  tank:   { cooldown:4.2, telegraph:0.55, slamRadius:130, push:480 },
+  archer: { cooldown:2.2, telegraph:0.4,  arrowSpeed:900, push:650 },
+  mage:   { cooldown:3.6, telegraph:0.9,  fieldDur:1.8, fieldRadius:115, slowFactor:4.5 },
+  tank:   { cooldown:4.2, telegraph:0.55, slamRadius:150, push:800 },
 };
 function initHeroSkillState(h){
   const conf = HERO_SKILL_CONF[h.heroClass];
@@ -7578,28 +7701,36 @@ function fireHeroSkill(h, conf){
     heroProjectiles.push({
       x: originX, y: originY,
       vx: dx/dist * conf.arrowSpeed, vy: dy/dist * conf.arrowSpeed,
-      push: conf.push, life: 1.4, owner: h,
+      push: conf.push, life: 1.4, owner: h, trail: [],
     });
-    playSfx("deflect", 0.5);
+    spawnFloatText(originX, originY - 20, "射擊!", "#fff6d8", false);
+    playSfx("deflect", 0.7);
   } else if(h.heroClass === "mage"){
     heroFields.push({ x: originX, y: originY, r: conf.fieldRadius, t: conf.fieldDur, maxT: conf.fieldDur, slow: conf.slowFactor });
-    spawnShockwave(originX, originY, "#b48cff", conf.fieldRadius, 0.4);
-    createImpactParticles(originX, originY, "#c9a8ff", 10);
+    spawnShockwave(originX, originY, "#b48cff", conf.fieldRadius, 0.45);
+    spawnShockwave(originX, originY, "#e8d4ff", conf.fieldRadius * 0.6, 0.3);
+    createImpactParticles(originX, originY, "#c9a8ff", 18);
+    spawnFloatText(originX, originY - 20, "減速力場!", "#c9a8ff", true);
   } else if(h.heroClass === "tank"){
     const dx = slime.x - originX, dy = slime.y - originY;
     const dist = Math.sqrt(dx*dx + dy*dy);
     if(dist <= conf.slamRadius && dist > 0.001){
       slime.vx += dx/dist * conf.push;
       slime.vy += dy/dist * conf.push - 100;
+      spawnFloatText(slime.x, slime.y - 20, "震退!", "#e8a25c", true);
     }
-    spawnShockwave(originX, h.bottom, "#8a6a4a", conf.slamRadius, 0.4);
-    createImpactParticles(originX, h.bottom, "#6e4023", 14);
-    screenShake = Math.min(screenShake + 6, 14);
+    spawnShockwave(originX, h.bottom, "#8a6a4a", conf.slamRadius, 0.45);
+    spawnShockwave(originX, h.bottom, "#e8a25c", conf.slamRadius * 0.55, 0.3);
+    createImpactParticles(originX, h.bottom, "#6e4023", 22);
+    createImpactParticles(originX, h.bottom, "#e8a25c", 10);
+    screenShake = Math.min(screenShake + 10, 18);
   }
 }
 function updateHeroProjectilesAndFields(dt){
   for(let i = heroProjectiles.length - 1; i >= 0; i--){
     const p = heroProjectiles[i];
+    p.trail.push({x:p.x, y:p.y});
+    if(p.trail.length > 6) p.trail.shift();
     p.x += p.vx * dt; p.y += p.vy * dt; p.life -= dt;
     let hit = false;
     if(slime && slime.state === "flying"){
@@ -7612,8 +7743,11 @@ function updateHeroProjectilesAndFields(dt){
       const dist = Math.sqrt(dx*dx + dy*dy) || 1;
       slime.vx += (dx/dist) * p.push;
       slime.vy += (dy/dist) * p.push * 0.4;
-      createImpactParticles(p.x, p.y, "#e8d8a0", 8);
-      playSfx("hitBlock", 0.3);
+      createImpactParticles(p.x, p.y, "#e8d8a0", 16);
+      spawnShockwave(p.x, p.y, "#fff6d8", 45, 0.3);
+      spawnFloatText(p.x, p.y - 16, "擊退!", "#fff6d8", true);
+      screenShake = Math.min(screenShake + 5, 14);
+      playSfx("hitBlock", 0.6);
       heroProjectiles.splice(i, 1);
     } else if(p.life <= 0 || p.x < -40 || p.x > W+40 || p.y < -40 || p.y > H+40){
       heroProjectiles.splice(i, 1);
@@ -7633,63 +7767,179 @@ function updateHeroProjectilesAndFields(dt){
   }
 }
 function drawHeroSkillFx(){
+  const now = performance.now();
   for(const h of heroes){
     if(h.hp <= 0 || isHeroHidden(h)) continue;
     if(h.heroClass === "knight" && h._blocking){
-      const cx = h.x + h.w*0.45, cy = h.bottom - h.h*0.55;
+      const cx = h.x + h.w*0.5, cy = h.bottom - h.h*0.55;
+      const sw = h.w*0.5, sh = h.h*0.62;
+      const shimmer = 0.85 + Math.sin(now/110)*0.12;
       ctx.save();
-      ctx.globalAlpha = 0.85;
-      ctx.fillStyle = "#cfe6ff";
-      ctx.strokeStyle = "#4a6a9a";
-      ctx.lineWidth = 2;
+      ctx.globalAlpha = shimmer;
       ctx.beginPath();
-      ctx.ellipse(cx, cy, h.w*0.22, h.h*0.32, 0, 0, Math.PI*2);
-      ctx.fill(); ctx.stroke();
+      ctx.moveTo(cx-sw*0.5, cy-sh*0.35);
+      ctx.quadraticCurveTo(cx-sw*0.5, cy-sh*0.55, cx, cy-sh*0.55);
+      ctx.quadraticCurveTo(cx+sw*0.5, cy-sh*0.55, cx+sw*0.5, cy-sh*0.35);
+      ctx.lineTo(cx+sw*0.5, cy+sh*0.05);
+      ctx.quadraticCurveTo(cx+sw*0.35, cy+sh*0.35, cx, cy+sh*0.55);
+      ctx.quadraticCurveTo(cx-sw*0.35, cy+sh*0.35, cx-sw*0.5, cy+sh*0.05);
+      ctx.closePath();
+      const shieldGrad = ctx.createLinearGradient(cx, cy-sh*0.55, cx, cy+sh*0.55);
+      shieldGrad.addColorStop(0, "#eaf4ff");
+      shieldGrad.addColorStop(1, "#5f7fa8");
+      ctx.fillStyle = shieldGrad;
+      ctx.fill();
+      ctx.lineWidth = 2.5;
+      ctx.strokeStyle = "#26314a";
+      ctx.stroke();
+      // gold cross emblem
+      ctx.strokeStyle = "#e8c25a";
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy-sh*0.32); ctx.lineTo(cx, cy+sh*0.28);
+      ctx.moveTo(cx-sw*0.24, cy-sh*0.05); ctx.lineTo(cx+sw*0.24, cy-sh*0.05);
+      ctx.stroke();
+      // vertical shine streak
+      ctx.globalAlpha = shimmer * 0.5;
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = sw*0.16;
+      ctx.beginPath();
+      ctx.moveTo(cx-sw*0.22, cy-sh*0.4); ctx.lineTo(cx-sw*0.1, cy+sh*0.25);
+      ctx.stroke();
       ctx.restore();
     } else if(h.heroClass === "mage" && h._skillPhase === "telegraph"){
       const conf = HERO_SKILL_CONF.mage;
       const t = 1 - Math.max(0, h._skillT) / conf.telegraph;
       const cx = h.x, cy = h.bottom - h.h*0.98;
+      const r = 6 + t*16;
       ctx.save();
-      ctx.globalAlpha = 0.5 + t*0.4;
-      ctx.fillStyle = "#c9a8ff";
-      ctx.beginPath(); ctx.arc(cx, cy, 4 + t*10, 0, Math.PI*2); ctx.fill();
+      ctx.globalAlpha = 0.55 + t*0.4;
+      ctx.fillStyle = "rgba(201,168,255,0.35)";
+      ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.fill();
+      ctx.strokeStyle = "#c9a8ff";
+      ctx.lineWidth = 1.6;
+      ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.stroke();
+      // rotating rune ticks
+      const spin = now/220;
+      for(let k=0;k<6;k++){
+        const a = spin + k*Math.PI/3;
+        ctx.beginPath();
+        ctx.moveTo(cx+Math.cos(a)*(r-3), cy+Math.sin(a)*(r-3));
+        ctx.lineTo(cx+Math.cos(a)*(r+5), cy+Math.sin(a)*(r+5));
+        ctx.stroke();
+      }
+      ctx.fillStyle = "#fff";
+      ctx.beginPath(); ctx.arc(cx, cy, 2.5+t*2, 0, Math.PI*2); ctx.fill();
       ctx.restore();
     } else if(h.heroClass === "tank" && h._skillPhase === "telegraph"){
       const conf = HERO_SKILL_CONF.tank;
       const t = 1 - Math.max(0, h._skillT) / conf.telegraph;
+      const cx = h.x, cy = h.bottom;
+      const R = conf.slamRadius * t;
       ctx.save();
-      ctx.globalAlpha = 0.35 * t;
-      ctx.fillStyle = "#8a6a4a";
-      ctx.beginPath(); ctx.ellipse(h.x, h.bottom, conf.slamRadius*t, conf.slamRadius*t*0.28, 0, 0, Math.PI*2); ctx.fill();
+      ctx.globalAlpha = 0.3 * t;
+      ctx.fillStyle = "#ff9d3c";
+      ctx.beginPath(); ctx.ellipse(cx, cy, R, R*0.3, 0, 0, Math.PI*2); ctx.fill();
+      ctx.restore();
+      // jagged glowing cracks radiating from its feet
+      ctx.save();
+      ctx.globalAlpha = 0.5 + t*0.5;
+      ctx.strokeStyle = "#ff9d3c";
+      ctx.lineWidth = 2;
+      const crackCount = 6;
+      for(let k=0;k<crackCount;k++){
+        const a = (k / crackCount) * Math.PI - Math.PI/2 + 0.3;
+        const len = R * (0.5 + (k%3)*0.18);
+        const midX = cx + Math.cos(a)*len*0.55, midY = cy + Math.sin(a)*len*0.55*0.3 - 2;
+        const endX = cx + Math.cos(a)*len, endY = cy + Math.sin(a)*len*0.3;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(midX + (k%2?4:-4), midY - 3);
+        ctx.lineTo(endX, endY);
+        ctx.stroke();
+      }
       ctx.restore();
     } else if(h.heroClass === "archer" && h._skillPhase === "telegraph"){
-      const cx = h.x + h.w*0.62, cy = h.bottom - h.h*0.42;
+      const bowCx = h.x + h.w*0.62, bowCy = h.bottom - h.h*0.42;
       const conf = HERO_SKILL_CONF.archer;
       const t = 1 - Math.max(0, h._skillT) / conf.telegraph;
+      const bowR = h.h*0.34;
       ctx.save();
+      // taut bowstring pulled back toward the slime
+      let ang = 0;
+      if(slime){ ang = Math.atan2(slime.y - bowCy, slime.x - bowCx); }
+      const drawback = 10 + t*16;
+      const nockX = bowCx - Math.cos(ang)*drawback, nockY = bowCy - Math.sin(ang)*drawback;
+      ctx.strokeStyle = "rgba(255,246,216,0.85)";
+      ctx.lineWidth = 1.4;
+      ctx.beginPath();
+      ctx.moveTo(bowCx + Math.cos(ang+1.3)*bowR, bowCy + Math.sin(ang+1.3)*bowR);
+      ctx.lineTo(nockX, nockY);
+      ctx.lineTo(bowCx + Math.cos(ang-1.3)*bowR, bowCy + Math.sin(ang-1.3)*bowR);
+      ctx.stroke();
       ctx.globalAlpha = 0.6 + t*0.4;
       ctx.fillStyle = "#fff6d8";
-      ctx.beginPath(); ctx.arc(cx, cy, 3 + t*4, 0, Math.PI*2); ctx.fill();
+      ctx.shadowColor = "#ffdf8a"; ctx.shadowBlur = 10;
+      ctx.beginPath(); ctx.arc(nockX, nockY, 2.5 + t*4, 0, Math.PI*2); ctx.fill();
+      ctx.shadowBlur = 0;
       ctx.restore();
     }
   }
   for(const f of heroFields){
-    const a = Math.min(1, f.t / f.maxT) * 0.28;
+    const lifeFrac = Math.min(1, f.t / f.maxT);
+    const a = lifeFrac * 0.9;
     ctx.save();
-    ctx.globalAlpha = a;
+    ctx.globalAlpha = a * 0.22;
     ctx.fillStyle = "#8a5fd6";
     ctx.beginPath(); ctx.arc(f.x, f.y, f.r, 0, Math.PI*2); ctx.fill();
     ctx.restore();
+    // rotating dashed rune ring border so it clearly reads as a spell zone
+    ctx.save();
+    ctx.globalAlpha = a;
+    ctx.strokeStyle = "#c9a8ff";
+    ctx.lineWidth = 2.5;
+    const spin = now/500;
+    const dashCount = 10;
+    for(let k=0;k<dashCount;k++){
+      const a0 = spin + (k/dashCount)*Math.PI*2;
+      const a1 = a0 + (Math.PI*2/dashCount)*0.55;
+      ctx.beginPath();
+      ctx.arc(f.x, f.y, f.r, a0, a1);
+      ctx.stroke();
+    }
+    ctx.restore();
+    // drifting motes inside the field
+    for(let i=0;i<5;i++){
+      const seed = i*97 + f.x;
+      const cycle = 1400 + (i%3)*300;
+      const phase = ((now + seed) % cycle) / cycle;
+      const mx = f.x + Math.cos(seed + now/900) * f.r * phase;
+      const my = f.y + Math.sin(seed*1.3 + now/900) * f.r * phase;
+      ctx.save();
+      ctx.globalAlpha = a * (1-phase) * 0.8;
+      ctx.fillStyle = "#e8d4ff";
+      ctx.beginPath(); ctx.arc(mx, my, 2, 0, Math.PI*2); ctx.fill();
+      ctx.restore();
+    }
   }
   for(const p of heroProjectiles){
+    for(let i=0;i<p.trail.length;i++){
+      const tp2 = p.trail[i];
+      ctx.save();
+      ctx.globalAlpha = (i / p.trail.length) * 0.4;
+      ctx.fillStyle = "#ffe9ad";
+      ctx.beginPath(); ctx.arc(tp2.x, tp2.y, 2.4, 0, Math.PI*2); ctx.fill();
+      ctx.restore();
+    }
     ctx.save();
     const ang = Math.atan2(p.vy, p.vx);
     ctx.translate(p.x, p.y); ctx.rotate(ang);
-    ctx.strokeStyle = "#5c4326"; ctx.lineWidth = 2.4;
-    ctx.beginPath(); ctx.moveTo(-9,0); ctx.lineTo(6,0); ctx.stroke();
-    ctx.fillStyle = "#e8d8a0";
-    ctx.beginPath(); ctx.moveTo(6,0); ctx.lineTo(-1,-3); ctx.lineTo(-1,3); ctx.closePath(); ctx.fill();
+    ctx.shadowColor = "#ffdf8a"; ctx.shadowBlur = 8;
+    ctx.strokeStyle = "#5c4326"; ctx.lineWidth = 2.8;
+    ctx.beginPath(); ctx.moveTo(-12,0); ctx.lineTo(7,0); ctx.stroke();
+    ctx.fillStyle = "#ffe9ad";
+    ctx.beginPath(); ctx.moveTo(9,0); ctx.lineTo(-1,-4); ctx.lineTo(-1,4); ctx.closePath(); ctx.fill();
+    ctx.shadowBlur = 0;
     ctx.restore();
   }
 }
