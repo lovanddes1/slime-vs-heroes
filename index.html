@@ -695,6 +695,118 @@
     font-size:clamp(12px,1.9vw,15px);
     color:var(--ui-accent);
   }
+  /* ===== Typing Practice mode ===== */
+  .typing-entry-btn{
+    background:linear-gradient(180deg,#7fe0b8,#2e9a5c) !important;
+    color:#0f3a24 !important;
+  }
+  #typing-menu-screen{
+    position:absolute;top:0;left:0;width:100%;height:100%;
+    background:rgba(20,16,40,0.92);
+    display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
+    gap:clamp(6px,1.2vw,12px);
+    color:var(--ui-text);text-align:center;
+    border-radius:14px;z-index:10;
+    padding:4% 4% 3% 4%;
+    overflow-y:auto;
+  }
+  #typing-menu-screen h2{
+    font-size:clamp(18px,3.4vw,28px);
+    margin:0 0 2px 0;
+    color:var(--ui-accent);
+  }
+  #typing-mode-tabs{
+    display:flex;gap:0.6em;margin-bottom:2px;
+  }
+  .typing-mode-tab{
+    font-family:inherit;font-weight:800;
+    font-size:clamp(13px,2vw,17px);
+    padding:0.5em 1.4em;border-radius:999px;border:none;cursor:pointer;
+    background:rgba(255,255,255,0.12);color:var(--ui-text);
+    transition:transform 0.08s ease;
+  }
+  .typing-mode-tab.active{
+    background:linear-gradient(180deg,#ffe08a,var(--ui-accent));
+    color:#2b2440;
+  }
+  #typing-level-grid{
+    width:100%;max-width:560px;
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(46px,1fr));
+    gap:6px;
+    max-height:56vh;
+    overflow-y:auto;
+    padding:2px 4px 4px 2px;
+  }
+  .typing-level-btn{
+    position:relative;
+    aspect-ratio:1;
+    border-radius:10px;
+    border:1px solid rgba(255,255,255,0.18);
+    background:rgba(255,255,255,0.07);
+    color:var(--ui-text);
+    font-family:inherit;font-weight:800;
+    font-size:clamp(11px,1.6vw,14px);
+    cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    transition:transform 0.08s ease;
+  }
+  .typing-level-btn:not(.locked):active{ transform:scale(0.92); }
+  .typing-level-btn.locked{ opacity:0.35;cursor:not-allowed; }
+  .typing-level-btn.cleared{ border-color:rgba(95,209,138,0.7);background:rgba(95,209,138,0.12); }
+  .typing-level-btn.miniboss{ border-color:rgba(230,140,60,0.8); }
+  .typing-level-btn.boss{ border-color:rgba(220,70,70,0.9);background:rgba(220,70,70,0.14); }
+  .typing-level-btn.final{ border-color:rgba(255,215,0,0.95);background:rgba(255,215,0,0.16);color:#ffe9a8; }
+  .typing-level-btn .kind-badge{
+    position:absolute;top:-6px;right:-4px;font-size:0.85em;
+  }
+  #typing-legend{
+    font-size:clamp(9px,1.4vw,11.5px);opacity:0.8;
+    display:flex;gap:1em;flex-wrap:wrap;justify-content:center;
+  }
+  #typing-back-btn{ margin-top:4px; }
+  #typing-hud{
+    position:absolute;top:0;left:0;width:100%;height:100%;
+    pointer-events:none;
+    display:flex;flex-direction:column;align-items:center;
+  }
+  #typing-hud-top{
+    margin-top:2.5%;
+    display:flex;flex-direction:column;align-items:center;gap:0.35em;
+    background:var(--ui-panel);
+    border-radius:16px;
+    padding:0.45em 1.2em;
+    font-size:clamp(11px,1.6vw,15px);
+    font-weight:700;color:var(--ui-text);
+  }
+  #typing-hud-toprow{ display:flex;align-items:center;gap:1em; }
+  #typing-hud-tier{ color:var(--ui-accent); }
+  #typing-hud-progress{ opacity:0.9; }
+  #typing-hp-bar-wrap{
+    width:min(60vw,260px);height:10px;
+    background:rgba(0,0,0,0.4);border-radius:999px;overflow:hidden;
+  }
+  #typing-hp-bar-fill{
+    height:100%;width:100%;
+    background:linear-gradient(90deg,#5fd18a,#2e9a5c);
+    transition:width 0.15s ease, background 0.15s ease;
+  }
+  #typing-exit-btn{
+    position:absolute;top:2.5%;right:3%;
+    pointer-events:auto;
+    font-family:inherit;font-weight:700;
+    font-size:clamp(11px,1.6vw,14px);
+    padding:0.45em 1em;border-radius:999px;border:none;cursor:pointer;
+    background:rgba(0,0,0,0.35);color:var(--ui-text);
+  }
+  #typing-tier-clear-banner{
+    position:absolute;top:38%;left:50%;transform:translate(-50%,-50%);
+    font-size:clamp(20px,4vw,34px);font-weight:800;color:var(--ui-accent);
+    text-shadow:0 3px 0 rgba(0,0,0,0.5);
+    opacity:0;transition:opacity 0.25s ease;
+    pointer-events:none;text-align:center;
+  }
+  #typing-tier-clear-banner.show{ opacity:1; }
   .shop-item-desc{
     font-size:clamp(10px,1.5vw,12.5px);
     opacity:0.85;
@@ -1470,6 +1582,7 @@
         <button class="btn secondary" id="shop-btn">商店</button>
         <button class="btn secondary" id="achv-btn">成就 / 造型</button>
         <button class="btn secondary" id="leaderboard-btn">排行榜</button>
+        <button class="btn secondary typing-entry-btn" id="typing-menu-btn">⌨️ 打字特訓</button>
       </div>
       <div class="menu-btn-row menu-btn-row-small">
         <button class="btn secondary" id="version-btn">版本資訊</button>
@@ -1547,6 +1660,30 @@
       <div id="shop-item-list"></div>
       <button class="btn secondary" id="shop-back-btn">返回主頁</button>
     </div>
+    <div class="overlay hidden" id="typing-menu-screen">
+      <h2 id="typing-menu-title">⌨️ 打字特訓</h2>
+      <p id="typing-menu-sub" style="font-size:clamp(10px,1.5vw,13px);opacity:0.85;margin:-4px 0 2px 0;">練熟一關才能解鎖下一關,分數會換算成主遊戲的一點點金幣</p>
+      <div id="typing-mode-tabs">
+        <button class="typing-mode-tab active" id="typing-tab-en" data-mode="en">英打 EN</button>
+        <button class="typing-mode-tab" id="typing-tab-zy" data-mode="zy">注音 ㄅㄆㄇ</button>
+      </div>
+      <div id="typing-legend">
+        <span>🗡️ 每5關小王</span><span>👹 每20關魔王</span><span>👑 第100關</span>
+      </div>
+      <div id="typing-level-grid"></div>
+      <button class="btn secondary" id="typing-back-btn">返回主頁</button>
+    </div>
+    <div class="overlay hidden" id="typing-hud">
+      <div id="typing-hud-top">
+        <div id="typing-hud-toprow">
+          <span id="typing-hud-tier">Lv.1</span>
+          <span id="typing-hud-progress">0 / 5</span>
+        </div>
+        <div id="typing-hp-bar-wrap"><div id="typing-hp-bar-fill"></div></div>
+      </div>
+      <div id="typing-tier-clear-banner"></div>
+    </div>
+    <button class="hidden" id="typing-exit-btn">✕ 離開特訓</button>
     <div class="overlay hidden" id="achv-screen">
       <h2 id="achv-title">成就 / 造型</h2>
       <div id="achv-tabs">
@@ -2155,8 +2292,56 @@ function tr(key, vars){
 // Player-facing changelog, newest first. Plain language only - no technical
 // details. Every future revision must add a new entry here and bump
 // GAME_VERSION (and the filename).
-const GAME_VERSION = "1.1.7";
+const GAME_VERSION = "1.4.0";
 const CHANGELOG = [
+  { ver: "1.4.0",
+    zh: [
+      "小王/魔王/最終王的戰鬥改成第一人稱(類似勇者鬥惡龍那種正面對戰視角):王會巨大化站在畫面正中央,不再是側面走位的小兵",
+      "王的攻擊改成魔法彈:每隔一段時間會有一顆發光的法球從王身上射出、逐漸放大朝畫面飛來,飛到定點前沒把上面的字/符號打出來就會命中、史萊姆掉血;打對了法球就會消散,王會後仰一下再放下一發",
+      "小兵(一般關卡)維持原本側面走位、打字後上前擊倒的玩法不變"
+    ],
+    en: [
+      "Miniboss/boss/final-boss fights are now first-person (Dragon Quest-style face-off): the foe looms huge in the center of the screen instead of a small sprite walking in from the side",
+      "Boss attacks are now magic bolts: a glowing orb periodically launches from the boss and grows as it flies toward the camera - if its prompt isn't typed before the orb arrives, it lands and the slime takes damage; typing it correctly dissipates the orb and the boss recoils before casting again",
+      "Regular minion levels are unchanged - still the side-view walk-in-and-defeat gameplay"
+    ]
+  },
+  { ver: "1.3.0",
+    zh: [
+      "打字特訓擴充到 100 關(英打/注音各自獨立 100 關),關卡選單改成方格式選關,一次可以看到全部進度",
+      "比照主遊戲節奏加入「🗡️ 每 5 關小王」「👹 每 20 關魔王」「👑 第 100 關最終王」:小王/魔王/最終王是同一隻敵人站著不走,要連續打對好幾次才會被擊倒,擊倒前會不斷反擊",
+      "史萊姆現在有血量:敵人一旦欺近身邊,沒有及時打對字就會持續受到攻擊掉血,掉到 0 血這關就得重來一次(已賺到的金幣不會被沒收);小王/魔王攻擊更痛、更頻繁,提升緊張感",
+      "小王(👹魔王/👑最終王同理)使用主遊戲同一套魔王/地帶魔王/主神美術(黑袍大劍、鬼氣光環那些),不是另外簡化畫的"
+    ],
+    en: [
+      "Typing Practice expanded to 100 levels each for English and Zhuyin; the level-select screen is now a numbered grid showing full progress at a glance",
+      "Added the main game's boss rhythm: a 🗡️ miniboss every 5 levels, a 👹 boss every 20, and a 👑 grand finale at level 100 - these are a single tough enemy that stands its ground and needs several correct hits in a row to go down, counter-attacking the whole time",
+      "The slime now has HP: an enemy that closes the distance keeps hitting back if you don't type its prompt fast enough, and hitting 0 HP restarts the level (coins already earned are kept); minibosses/bosses hit harder and more often for real tension",
+      "Minibosses/bosses/the finale reuse the main game's actual boss/zone-boss/god art (dark cape and greatsword, ghostly aura, etc.) instead of a separately-drawn look"
+    ]
+  },
+  { ver: "1.2.1",
+    zh: [
+      "打字特訓按鈕改成跟排行榜等按鈕一樣大小(原本太顯眼),只留顏色區隔",
+      "打字特訓裡的敵人改用主遊戲同一套勇者美術(騎士/弓兵/法師/坦克四種造型,並隨關卡輪換世界配色),不再是另外畫的簡化外觀,代入感更一致"
+    ],
+    en: [
+      "The Typing Practice menu button now matches the size of the other secondary buttons (Leaderboard etc.) instead of standing out - only the color still marks it as different",
+      "Enemies in Typing Practice now reuse the main game's actual hero art (knight/archer/mage/tank, cycling through the world palettes by tier) instead of a separately-drawn simplified look"
+    ]
+  },
+  { ver: "1.2.0",
+    zh: [
+      "新增「⌨️ 打字特訓」模式(主選單新按鈕):分英打/注音兩個獨立模式,各自從單鍵開始練,練滿一關才解鎖下一關(英打:主排單鍵→上排→下排→簡單單字;注音:主排→上排→下排→數字排單一符號)",
+      "玩法:勇者從畫面另一側走來,頭上頂著要打的字/符號,打對就讓史萊姆撲上去打倒他;每次擊倒都會得到一點點金幣(比主遊戲關卡少很多),可以在商店裡花掉",
+      "此模式是獨立小遊戲,不吃主遊戲的存檔/升級/生命值系統,單純練習不會有壓力"
+    ],
+    en: [
+      "Added a Typing Practice mode (new main-menu button): separate English and Zhuyin (Bopomofo) tracks, each starting from single-key drills and unlocking the next tier only after clearing the current one (English: home row keys -> top row -> bottom row -> simple words; Zhuyin: home row -> top row -> bottom row -> number row symbols)",
+      "Gameplay: a hero walks in from the far side carrying the letter/symbol to type overhead; typing it correctly sends the slime lunging in to knock them out, earning a small coin reward (much less than main-game levels) that can be spent in the shop",
+      "This is a self-contained side mode - it doesn't touch the main game's save data, upgrades, or health system, so it's pure low-pressure practice"
+    ]
+  },
   { ver: "1.1.7",
     zh: [
       "急停衝擊、彈跳突襲這兩個小技能現在也能在分身出動時接了:急停會讓每個分身各自原地引爆(分散多點小型衝擊波),彈跳則讓全體分身一起衝向最近的勇者(或無目標時一起俯衝地面)",
@@ -2657,7 +2842,7 @@ function defaultUpgrades(){ return { power:0, bounce:0, crit:0, ammo:0 }; }
 function defaultItems(){ return { bomb:0, heavy:0, magnet:0, bouncy:0, ammoBox:0, luck:0 }; }
 function defaultStats(){ return { totalKills:0, maxCombo:0, zeroRealmEntries:0, ultCasts:0, skillCasts:{ power:0, crit:0, bounce:0, ammo:0 } }; }
 function defaultAchievements(){ return {}; }
-let saveData = { currentLevel:0, highScore:0, lang:"zh", difficulty:"normal", coins:0, upgrades:defaultUpgrades(), items:defaultItems(), showSkillPreview:true, kbTipShown2:false, musicOn:true, sfxOn:true, introSeen:false, stats:defaultStats(), achievements:defaultAchievements(), equippedSkin:null };
+let saveData = { currentLevel:0, highScore:0, lang:"zh", difficulty:"normal", coins:0, upgrades:defaultUpgrades(), items:defaultItems(), showSkillPreview:true, kbTipShown2:false, musicOn:true, sfxOn:true, introSeen:false, stats:defaultStats(), achievements:defaultAchievements(), equippedSkin:null, typingProgress:{en:0, zy:0} };
 let saveLoaded = false;
 const storageMock = {
   data: {},
@@ -2733,6 +2918,7 @@ async function loadSave(){
       if(!saveData.stats) saveData.stats = defaultStats();
       if(!saveData.stats.skillCasts) saveData.stats.skillCasts = { power:0, crit:0, bounce:0, ammo:0 };
       if(!saveData.achievements) saveData.achievements = defaultAchievements();
+      if(!saveData.typingProgress) saveData.typingProgress = {en:0, zy:0};
       if(saveData.equippedSkin === undefined) saveData.equippedSkin = null;
       // migrate old paid "slimeLevel" damage upgrades into the new power upgrade
       if(typeof saveData.slimeLevel === "number" && saveData.slimeLevel > 0){
@@ -2772,7 +2958,7 @@ document.addEventListener("visibilitychange", () => {
 });
 window.addEventListener("pagehide", flushSaveSync);
 async function resetSave(){
-  saveData = { currentLevel:0, highScore:0, lang:lang, difficulty:difficulty, coins:0, upgrades:defaultUpgrades(), items:defaultItems(), showSkillPreview:true, kbTipShown2:false, musicOn:true, sfxOn:true, introSeen:false, stats:defaultStats(), achievements:defaultAchievements(), equippedSkin:null };
+  saveData = { currentLevel:0, highScore:0, lang:lang, difficulty:difficulty, coins:0, upgrades:defaultUpgrades(), items:defaultItems(), showSkillPreview:true, kbTipShown2:false, musicOn:true, sfxOn:true, introSeen:false, stats:defaultStats(), achievements:defaultAchievements(), equippedSkin:null, typingProgress:{en:0, zy:0} };
   try{
     await safeStorage.set(SAVE_KEY, JSON.stringify(saveData));
   }catch(e){
@@ -4174,6 +4360,481 @@ const versionScreen = document.getElementById("version-screen");
 const versionTitleEl = document.getElementById("version-title");
 const versionListEl = document.getElementById("version-list");
 const versionBackBtn = document.getElementById("version-back-btn");
+const typingMenuBtn = document.getElementById("typing-menu-btn");
+const typingMenuScreen = document.getElementById("typing-menu-screen");
+const typingTabEnBtn = document.getElementById("typing-tab-en");
+const typingTabZyBtn = document.getElementById("typing-tab-zy");
+const typingTierListEl = document.getElementById("typing-level-grid");
+const typingHpBarFillEl = document.getElementById("typing-hp-bar-fill");
+const typingBackBtn = document.getElementById("typing-back-btn");
+const typingHudEl = document.getElementById("typing-hud");
+const typingHudTierEl = document.getElementById("typing-hud-tier");
+const typingHudProgressEl = document.getElementById("typing-hud-progress");
+const typingTierClearBannerEl = document.getElementById("typing-tier-clear-banner");
+const typingExitBtn = document.getElementById("typing-exit-btn");
+
+// =====================================================================
+// TYPING PRACTICE MODE — 打字特訓
+// Self-contained sub-mode: its own gameState ("typingMenu" / "typing"),
+// its own tiny render/update loop hooked into the main loop()/render(),
+// and its own lightweight sprites (not the physics-driven drawSlime, but
+// the REAL drawHero()/drawHpBar() for enemies) so it can't destabilize the
+// main battle code. Progress and coin rewards persist in
+// saveData.typingProgress / saveData.coins.
+// =====================================================================
+const TYPING_LEVELS_TOTAL = 100;
+// Standard Taiwan Zhuyin (bopomofo) keyboard layout — keyed by evt.code so
+// it works regardless of whether a Zhuyin IME is actually turned on.
+const ZHUYIN_KEY_MAP = {
+  KeyA:"ㄇ", KeyS:"ㄋ", KeyD:"ㄎ", KeyF:"ㄑ", KeyG:"ㄕ", KeyH:"ㄘ", KeyJ:"ㄨ", KeyK:"ㄜ", KeyL:"ㄠ", Semicolon:"ㄤ",
+  KeyQ:"ㄆ", KeyW:"ㄊ", KeyE:"ㄍ", KeyR:"ㄐ", KeyT:"ㄔ", KeyY:"ㄗ", KeyU:"ㄧ", KeyI:"ㄛ", KeyO:"ㄟ", KeyP:"ㄣ",
+  KeyZ:"ㄈ", KeyX:"ㄌ", KeyC:"ㄏ", KeyV:"ㄒ", KeyB:"ㄖ", KeyN:"ㄙ", KeyM:"ㄩ", Comma:"ㄝ", Period:"ㄡ", Slash:"ㄥ",
+  Digit1:"ㄅ", Digit2:"ㄉ", Digit3:"ˇ", Digit4:"ˋ", Digit5:"ㄓ", Digit6:"ˊ", Digit7:"˙", Digit8:"ㄚ", Digit9:"ㄞ", Digit0:"ㄢ", Minus:"ㄦ",
+};
+const ZY_HOME_CODES   = ["KeyA","KeyS","KeyD","KeyF","KeyG","KeyH","KeyJ","KeyK","KeyL","Semicolon"];
+const ZY_TOP_CODES    = ["KeyQ","KeyW","KeyE","KeyR","KeyT","KeyY","KeyU","KeyI","KeyO","KeyP"];
+const ZY_BOTTOM_CODES = ["KeyZ","KeyX","KeyC","KeyV","KeyB","KeyN","KeyM","Comma","Period","Slash"];
+const ZY_NUMBER_CODES = ["Digit1","Digit2","Digit3","Digit4","Digit5","Digit6","Digit7","Digit8","Digit9","Digit0","Minus"];
+const ZY_ALL_CODES = ZY_HOME_CODES.concat(ZY_TOP_CODES, ZY_BOTTOM_CODES, ZY_NUMBER_CODES);
+const WORDS_3    = ["cat","dog","sun","hat","pen","bus","cup","box","map","run","big","red","hot","top","six","bed","egg","fox","jam","kid"];
+const WORDS_4    = ["frog","fish","milk","desk","door","tree","star","ball","book","lamp","rain","snow","cake","gift","song"];
+const WORDS_HARD = ["apple","happy","tiger","water","green","house","plant","smile","bread","chair","cloud","dance","eagle","flute","grape","honey"];
+// --- Content band per level (1-based) — same content is used whether the
+// level is a normal wave, a miniboss, or a boss; only the encounter shape
+// (single tough enemy vs several small ones) changes with the level kind.
+function enContentForLevel(lvl){
+  if(lvl <= 5)  return { keys:["f","j"] };
+  if(lvl <= 10) return { keys:["f","j","d","k"] };
+  if(lvl <= 15) return { keys:["f","j","d","k","s","l"] };
+  if(lvl <= 20) return { keys:["f","j","d","k","s","l","a",";","g","h"] };
+  if(lvl <= 25) return { keys:["q","w","e","r","t"] };
+  if(lvl <= 30) return { keys:["q","w","e","r","t","y","u","i","o","p"] };
+  if(lvl <= 40) return { keys:["f","j","d","k","s","l","a",";","g","h","q","w","e","r","t","y","u","i","o","p"] };
+  if(lvl <= 45) return { keys:["z","x","c","v","b"] };
+  if(lvl <= 50) return { keys:["z","x","c","v","b","n","m",",",".","/"] };
+  if(lvl <= 60) return { keys:["f","j","d","k","s","l","a",";","g","h","q","w","e","r","t","y","u","i","o","p","z","x","c","v","b","n","m",",",".","/"] };
+  if(lvl <= 70) return { words: WORDS_3 };
+  if(lvl <= 80) return { words: WORDS_3.concat(WORDS_4) };
+  return { words: WORDS_4.concat(WORDS_HARD) }; // 81-100
+}
+function zyContentForLevel(lvl){
+  if(lvl <= 10) return { codes: ZY_HOME_CODES };
+  if(lvl <= 20) return { codes: ZY_HOME_CODES };
+  if(lvl <= 30) return { codes: ZY_TOP_CODES };
+  if(lvl <= 40) return { codes: ZY_HOME_CODES.concat(ZY_TOP_CODES) };
+  if(lvl <= 50) return { codes: ZY_BOTTOM_CODES };
+  if(lvl <= 60) return { codes: ZY_HOME_CODES.concat(ZY_TOP_CODES, ZY_BOTTOM_CODES) };
+  if(lvl <= 70) return { codes: ZY_NUMBER_CODES };
+  return { codes: ZY_ALL_CODES }; // 71-100 full review
+}
+function contentForLevel(mode, lvl){ return mode === "zy" ? zyContentForLevel(lvl) : enContentForLevel(lvl); }
+// --- Level "kind" (encounter shape), matching the main game's rhythm:
+// miniboss every 5 levels, boss every 20, one grand final at level 100.
+function typingLevelKind(lvl){
+  if(lvl === TYPING_LEVELS_TOTAL) return "final";
+  if(lvl % 20 === 0) return "boss";
+  if(lvl % 5 === 0) return "miniboss";
+  return "normal";
+}
+const TYPING_KIND_CONF = {
+  normal:   { killGoal:5,  hp:10,  scale:1,    atkInterval:1300, atkDmg:6,  coin:1 },
+  miniboss: { killGoal:4,  hp:40,  scale:1.35, atkInterval:1000, atkDmg:12, coin:6 },
+  boss:     { killGoal:6,  hp:80,  scale:1.7,  atkInterval:800,  atkDmg:18, coin:14 },
+  final:    { killGoal:10, hp:160, scale:2.1,  atkInterval:650,  atkDmg:24, coin:40 },
+};
+const TYPING_KIND_BADGE = { normal:"", miniboss:"🗡️", boss:"👹", final:"👑" };
+const TYPING_SLIME_MAX_HP = 100;
+let typingMode = "en"; // "en" | "zy"
+let tp = null; // active session state while gameState === "typing"
+
+function typingUnlockedLevel(mode){
+  const n = (saveData.typingProgress && saveData.typingProgress[mode]) || 0;
+  return Math.min(n + 1, TYPING_LEVELS_TOTAL); // next-up level is always shown unlocked-to-try
+}
+function showTypingMenu(){
+  gameState = "typingMenu";
+  menuScreen.classList.add("hidden");
+  typingHudEl.classList.add("hidden");
+  typingExitBtn.classList.add("hidden");
+  typingMenuScreen.classList.remove("hidden");
+  renderTypingLevelGrid();
+}
+function setTypingModeTab(mode){
+  typingMode = mode;
+  typingTabEnBtn.classList.toggle("active", mode === "en");
+  typingTabZyBtn.classList.toggle("active", mode === "zy");
+  renderTypingLevelGrid();
+}
+function renderTypingLevelGrid(){
+  const unlocked = typingUnlockedLevel(typingMode);
+  const cleared = (saveData.typingProgress && saveData.typingProgress[typingMode]) || 0;
+  typingTierListEl.innerHTML = "";
+  for(let lvl = 1; lvl <= TYPING_LEVELS_TOTAL; lvl++){
+    const locked = lvl > unlocked;
+    const kind = typingLevelKind(lvl);
+    const btn = document.createElement("div");
+    btn.className = "typing-level-btn" + (locked ? " locked" : "") +
+      (lvl <= cleared ? " cleared" : "") + (kind !== "normal" ? " " + kind : "");
+    btn.innerHTML = (locked ? "🔒" : lvl) +
+      (!locked && TYPING_KIND_BADGE[kind] ? '<span class="kind-badge">' + TYPING_KIND_BADGE[kind] + '</span>' : "");
+    if(!locked) btn.addEventListener("click", () => startTypingLevel(typingMode, lvl));
+    typingTierListEl.appendChild(btn);
+  }
+}
+function startTypingLevel(mode, lvl){
+  const kind = typingLevelKind(lvl);
+  const conf = TYPING_KIND_CONF[kind];
+  const content = contentForLevel(mode, lvl);
+  tp = {
+    mode, level:lvl, kind, conf, content,
+    worldIdx: Math.floor((lvl-1)/20) % WORLD_THEMES.length,
+    kills:0,
+    hp: TYPING_SLIME_MAX_HP,
+    maxHp: TYPING_SLIME_MAX_HP,
+    enemy:null,
+    spawnAt: performance.now() + 300,
+    lungeUntil:0,
+    shakeUntil:0,
+    ended:false,
+  };
+  gameState = "typing";
+  typingMenuScreen.classList.add("hidden");
+  typingHudEl.classList.remove("hidden");
+  typingExitBtn.classList.remove("hidden");
+  typingTierClearBannerEl.classList.remove("show");
+  updateTypingHud();
+  setMusic("grassland", false);
+}
+function exitTypingToMenu(){
+  tp = null;
+  showTypingMenu();
+}
+function updateTypingHud(){
+  typingHudTierEl.textContent = "Lv." + tp.level + " " + (TYPING_KIND_BADGE[tp.kind] || "");
+  const done = (tp.enemy && tp.enemy.persistent) ? (tp.conf.killGoal - tp.enemy.hitsLeft) : tp.kills;
+  typingHudProgressEl.textContent = done + " / " + tp.conf.killGoal;
+  const frac = Math.max(0, tp.hp / tp.maxHp);
+  typingHpBarFillEl.style.width = (frac*100) + "%";
+  typingHpBarFillEl.style.background = frac > 0.4 ?
+    "linear-gradient(90deg,#5fd18a,#2e9a5c)" : "linear-gradient(90deg,#e88a56,#c0453f)";
+}
+function typingRandomTarget(){
+  if(tp.mode === "zy"){
+    const code = tp.content.codes[Math.floor(Math.random()*tp.content.codes.length)];
+    return { code, label: ZHUYIN_KEY_MAP[code], typed:"" };
+  }
+  if(tp.content.words){
+    const w = tp.content.words[Math.floor(Math.random()*tp.content.words.length)];
+    return { word:w, label:w, typed:"" };
+  }
+  const k = tp.content.keys[Math.floor(Math.random()*tp.content.keys.length)];
+  return { key:k, label:k.toUpperCase(), typed:"" };
+}
+const TYPING_BOSS_HEIGHT_FRAC = { miniboss:0.5, boss:0.68, final:0.86 };
+const TYPING_BOSS_ORB_COLOR = { miniboss:"#ff9d3c", boss:"#ff3c5c", final:"#ffe86b" };
+function spawnTypingEnemy(){
+  if(tp.kind !== "normal"){
+    // First-person boss/miniboss/final encounter: one huge, stationary foe
+    // that casts a spell orb at the camera instead of walking in.
+    const hFrac = TYPING_BOSS_HEIGHT_FRAC[tp.kind];
+    const h = H * hFrac, w = h * 0.42;
+    const now = performance.now();
+    tp.enemy = Object.assign({
+      x: W/2, bottom: H*0.94, w, h, hp:10, maxhp:10,
+      heroClass:"boss", bornAt: now,
+      persistent:true, hitsLeft: tp.conf.killGoal,
+      castStartAt: now + 500, castDuration: tp.conf.atkInterval,
+    }, typingRandomTarget());
+    tp.enemy.impactAt = tp.enemy.castStartAt + tp.enemy.castDuration;
+    return;
+  }
+  const heroClass = HERO_CLASSES[Math.floor(Math.random()*HERO_CLASSES.length)];
+  tp.enemy = Object.assign({
+    x: W - 40, bottom: GROUND_Y, w:44, h:110, hp:10, maxhp:10,
+    heroClass, bornAt: performance.now(),
+    persistent:false, hitsLeft: 1,
+    nextAttackAt: Infinity, // set once it reaches the danger zone
+  }, typingRandomTarget());
+}
+function typingEnemySpeed(){
+  return 30 + Math.min(tp.level, 60) * 0.7; // gentle ramp, capped so it never gets unfair
+}
+function typingEndLevel(win){
+  tp.ended = true;
+  tp.enemy = null;
+  if(win){
+    const prog = saveData.typingProgress[tp.mode] || 0;
+    if(tp.level > prog) saveData.typingProgress[tp.mode] = tp.level;
+    writeSave();
+    const hasNext = tp.level < TYPING_LEVELS_TOTAL;
+    typingTierClearBannerEl.textContent = tp.level === TYPING_LEVELS_TOTAL ? "👑 恭喜!100 關全破!" :
+      (tp.conf === TYPING_KIND_CONF.boss ? "👹 魔王擊破!解鎖下一關" :
+       tp.conf === TYPING_KIND_CONF.miniboss ? "🗡️ 小王擊破!解鎖下一關" : "🎉 過關!解鎖下一關");
+    typingTierClearBannerEl.classList.add("show");
+    setTimeout(() => {
+      typingTierClearBannerEl.classList.remove("show");
+      if(hasNext) startTypingLevel(tp.mode, tp.level + 1);
+      else exitTypingToMenu();
+    }, 1500);
+  } else {
+    typingTierClearBannerEl.textContent = "😖 撐不住了,再試一次!";
+    typingTierClearBannerEl.classList.add("show");
+    const lvl = tp.level, mode = tp.mode;
+    setTimeout(() => {
+      typingTierClearBannerEl.classList.remove("show");
+      startTypingLevel(mode, lvl);
+    }, 1400);
+  }
+}
+function hitTypingEnemy(){
+  const e = tp.enemy;
+  e.hitsLeft--;
+  playSfx("hitHero");
+  if(e.hitsLeft <= 0){
+    tp.lungeUntil = performance.now() + 260;
+    saveData.coins = (saveData.coins || 0) + tp.conf.coin;
+    writeSave();
+    tp.enemy = null;
+    if(e.persistent){
+      // this single tough enemy WAS the level (miniboss/boss/final) — clearing
+      // it clears the level outright.
+      typingEndLevel(true);
+      return;
+    }
+    tp.kills++;
+    tp.spawnAt = performance.now() + 550;
+    if(tp.kills >= tp.conf.killGoal){
+      typingEndLevel(true);
+      return;
+    }
+  } else {
+    // this enemy survives the hit: flinch (reuses drawHero's built-in
+    // recoil effect), get a fresh target, and get a short breather before
+    // it can attack/cast again.
+    e._recoilT = 0.16; e._recoilDur = 0.16;
+    e._recoilDx = (Math.random()-0.5)*14; e._recoilDy = -4;
+    Object.assign(e, typingRandomTarget());
+    if(tp.kind !== "normal"){
+      const now = performance.now();
+      e.castStartAt = now + 350;
+      e.castDuration = tp.conf.atkInterval;
+      e.impactAt = e.castStartAt + e.castDuration;
+    } else {
+      e.nextAttackAt = performance.now() + tp.conf.atkInterval * 0.7;
+    }
+    tp.lungeUntil = performance.now() + 200;
+  }
+  updateTypingHud();
+}
+function typingTakeDamage(dmg){
+  tp.hp = Math.max(0, tp.hp - dmg);
+  tp.shakeUntil = performance.now() + 220;
+  updateTypingHud();
+  if(tp.hp <= 0) typingEndLevel(false);
+}
+function updateTyping(dt){
+  if(!tp || tp.ended) return;
+  if(!tp.enemy && performance.now() >= tp.spawnAt){
+    spawnTypingEnemy();
+  }
+  if(tp.enemy && tp.kind !== "normal"){
+    const now = performance.now();
+    if(now >= tp.enemy.impactAt){
+      // the spell reached the slime before it was typed away — it lands.
+      typingTakeDamage(tp.conf.atkDmg);
+      tp.enemy._recoilT = 0.12; tp.enemy._recoilDur = 0.12;
+      tp.enemy._recoilDx = (Math.random()-0.5)*8; tp.enemy._recoilDy = 2;
+      tp.enemy.castStartAt = now + 500;
+      tp.enemy.castDuration = tp.conf.atkInterval;
+      tp.enemy.impactAt = tp.enemy.castStartAt + tp.enemy.castDuration;
+      Object.assign(tp.enemy, typingRandomTarget());
+      updateTypingHud();
+    }
+    if(tp.enemy._recoilT > 0) tp.enemy._recoilT = Math.max(0, tp.enemy._recoilT - dt);
+    return;
+  }
+  if(tp.enemy){
+    const dangerX = 160;
+    const now = performance.now();
+    if(tp.enemy.x > dangerX){
+      tp.enemy.x -= typingEnemySpeed() * dt;
+      if(tp.enemy.x <= dangerX){
+        tp.enemy.x = dangerX;
+        tp.enemy.nextAttackAt = now + tp.conf.atkInterval;
+      }
+    } else if(now >= tp.enemy.nextAttackAt){
+      tp.enemy.nextAttackAt = now + tp.conf.atkInterval;
+      tp.enemy._recoilT = 0.12; tp.enemy._recoilDur = 0.12;
+      tp.enemy._recoilDx = (Math.random()-0.5)*8; tp.enemy._recoilDy = 2;
+      typingTakeDamage(tp.conf.atkDmg);
+    }
+  }
+  if(tp.enemy && tp.enemy._recoilT > 0) tp.enemy._recoilT = Math.max(0, tp.enemy._recoilT - dt);
+}
+function typingHandleKey(evt){
+  if(!tp || tp.ended || !tp.enemy) return;
+  const e = tp.enemy;
+  if(tp.mode === "zy"){
+    if(evt.code === e.code){
+      hitTypingEnemy();
+    } else if(ZHUYIN_KEY_MAP[evt.code]){
+      tp.shakeUntil = performance.now() + 180;
+    }
+    return;
+  }
+  if(e.word){
+    const nextChar = e.word[e.typed.length];
+    if(evt.key.toLowerCase() === nextChar){
+      e.typed += nextChar;
+      if(e.typed.length === e.word.length) hitTypingEnemy();
+    } else if(evt.key.length === 1){
+      tp.shakeUntil = performance.now() + 180;
+    }
+    return;
+  }
+  if(evt.key.toLowerCase() === e.key){
+    hitTypingEnemy();
+  } else if(evt.key.length === 1){
+    tp.shakeUntil = performance.now() + 180;
+  }
+}
+window.addEventListener("keydown", (evt) => {
+  if(gameState !== "typing") return;
+  if(evt.key === "Escape") return; // handled by the global Escape listener (returns to main menu)
+  typingHandleKey(evt);
+});
+function drawPromptLabel(e, cx, cy){
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  if(e.word){
+    const w = e.word, typed = e.typed;
+    ctx.font = "bold " + Math.round(H*0.075) + "px monospace";
+    let totalW = 0;
+    const widths = [];
+    for(const ch of w){ const wd = ctx.measureText(ch.toUpperCase()).width; widths.push(wd); totalW += wd; }
+    let x = cx - totalW/2;
+    for(let i=0;i<w.length;i++){
+      ctx.fillStyle = i < typed.length ? "#5fd18a" : "#fdf6e8";
+      ctx.shadowColor = "rgba(0,0,0,0.6)"; ctx.shadowBlur = 8;
+      ctx.fillText(w[i].toUpperCase(), x + widths[i]/2, cy);
+      x += widths[i];
+    }
+    ctx.shadowBlur = 0;
+  } else {
+    ctx.font = "bold " + Math.round(H*0.11) + "px sans-serif";
+    ctx.fillStyle = "#fdf6e8";
+    ctx.shadowColor = "rgba(0,0,0,0.6)"; ctx.shadowBlur = 10;
+    ctx.fillText(e.label, cx, cy);
+    ctx.shadowBlur = 0;
+  }
+}
+function drawTypingBossView(){
+  const now = performance.now();
+  // moody, close-up arena backdrop — no slime sprite (this IS its point of
+  // view), just a dark vignette so the huge foe reads as looming/imposing.
+  const tint = { miniboss:"#3a2410", boss:"#3a0f14", final:"#241a3a" }[tp.kind] || "#140a10";
+  const bgGrad = ctx.createRadialGradient(W/2,H*0.42,H*0.12, W/2,H*0.5,H*0.95);
+  bgGrad.addColorStop(0, "#241a24");
+  bgGrad.addColorStop(1, tint);
+  ctx.fillStyle = bgGrad; ctx.fillRect(0,0,W,H);
+  ctx.fillStyle = "rgba(0,0,0,0.35)";
+  ctx.fillRect(0, H*0.9, W, H*0.1);
+
+  const e = tp.enemy;
+  if(e){
+    const savedLevelIndex = levelIndex;
+    levelIndex = (tp.worldIdx || 0) * 20;
+    const top = e.bottom - e.h;
+    const dmgFrac = e.hp / e.maxhp;
+    if(tp.kind === "final") drawGodHero(e, e.x, top, dmgFrac);
+    else if(tp.kind === "boss") drawDemonHero(e, e.x, top, dmgFrac);
+    else drawBossHero(e, e.x, top, dmgFrac);
+    levelIndex = savedLevelIndex;
+
+    // boss "HP" bar (hits remaining) near the top of the screen
+    const barW = W*0.5, barX = W/2 - barW/2, barY = H*0.045;
+    const frac = e.hitsLeft / tp.conf.killGoal;
+    ctx.fillStyle = "rgba(0,0,0,0.5)"; ctx.fillRect(barX, barY, barW, 10);
+    ctx.fillStyle = "#e05656"; ctx.fillRect(barX, barY, barW*frac, 10);
+
+    // incoming spell — a glowing orb that grows as it flies at the camera;
+    // if it isn't typed away before it fills the screen, it lands.
+    if(now >= e.castStartAt){
+      const t = Math.min(1, (now - e.castStartAt) / e.castDuration);
+      const orbColor = TYPING_BOSS_ORB_COLOR[tp.kind] || "#ff9d3c";
+      const cx = e.x + Math.sin(now/130)*8;
+      const cy = top + e.h*0.4 + t*(H*0.4);
+      const r = 8 + t*t*80;
+      ctx.save();
+      ctx.globalAlpha = 0.9;
+      const orbGrad = ctx.createRadialGradient(cx,cy,1,cx,cy,r);
+      orbGrad.addColorStop(0, "#fff8e0"); orbGrad.addColorStop(0.55, orbColor); orbGrad.addColorStop(1, "rgba(0,0,0,0)");
+      ctx.fillStyle = orbGrad;
+      ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.fill();
+      ctx.restore();
+      drawPromptLabel(e, cx, cy);
+    }
+  }
+  if(now < tp.shakeUntil){
+    ctx.fillStyle = "rgba(255,40,40,0.28)";
+    ctx.fillRect(0,0,W,H);
+  }
+}
+function drawTypingScene(){
+  fitCanvasBackingStore();
+  ctx.save();
+  const now = performance.now();
+  if(now < tp.shakeUntil){
+    ctx.translate((Math.random()-0.5)*6, (Math.random()-0.5)*4);
+  }
+  ctx.clearRect(0,0,W,H);
+  if(tp.kind !== "normal"){
+    drawTypingBossView();
+    ctx.restore();
+    return;
+  }
+  // sky + ground, matching the main game's palette and ground line (GROUND_Y)
+  // so the reused hero sprite stands at the correct height.
+  const horizon = GROUND_Y - 8;
+  const sky = ctx.createLinearGradient(0,0,0,horizon);
+  sky.addColorStop(0, "#8ec9e8"); sky.addColorStop(1, "#d9f0e0");
+  ctx.fillStyle = sky; ctx.fillRect(0,0,W,horizon);
+  const ground = ctx.createLinearGradient(0,horizon,0,H);
+  ground.addColorStop(0, "#7fbf5a"); ground.addColorStop(1, "#5a9a3d");
+  ctx.fillStyle = ground; ctx.fillRect(0,horizon,W,H-horizon);
+  // slime (left side) — simple blob, lunges forward on a hit, flashes red
+  // when it just took damage
+  const lungeT = Math.max(0, tp.lungeUntil - now) / 260;
+  const slimeX = 90 + lungeT * 70;
+  const slimeY = GROUND_Y - 22;
+  const hurtFlash = Math.max(0, tp.shakeUntil - now) / 220;
+  ctx.fillStyle = hurtFlash > 0.4 ? "#e05656" : "#5fd18a";
+  ctx.beginPath();
+  ctx.ellipse(slimeX, slimeY, 34, 26, 0, 0, Math.PI*2);
+  ctx.fill();
+  ctx.fillStyle = "#2e9a5c";
+  ctx.beginPath();
+  ctx.ellipse(slimeX-10, slimeY-6, 4, 5, 0, 0, Math.PI*2);
+  ctx.ellipse(slimeX+8, slimeY-6, 4, 5, 0, 0, Math.PI*2);
+  ctx.fill();
+  // hero (walking in from the right), drawn with the SAME drawHero() the
+  // main battle uses, so the class art matches the main game exactly.
+  if(tp.enemy){
+    const savedLevelIndex = levelIndex;
+    levelIndex = (tp.worldIdx || 0) * 20;
+    drawHero(tp.enemy);
+    drawHpBar(tp.enemy);
+    levelIndex = savedLevelIndex;
+    const hx = tp.enemy.x, top = tp.enemy.bottom - tp.enemy.h;
+    drawPromptLabel(tp.enemy, hx, top - (tp.enemy.word ? 26 : 30));
+  }
+  ctx.restore();
+}
+typingMenuBtn.addEventListener("click", () => { showTypingMenu(); });
+typingBackBtn.addEventListener("click", () => { showMenu(); });
+typingTabEnBtn.addEventListener("click", () => setTypingModeTab("en"));
+typingTabZyBtn.addEventListener("click", () => setTypingModeTab("zy"));
+typingExitBtn.addEventListener("click", () => { exitTypingToMenu(); });
+
 // --- Online leaderboard (Google Apps Script + Google Sheet backend) ---
 // 部署好 Google Apps Script 網路應用程式後,把網址貼在這裡(結尾類似 /exec)
 const LEADERBOARD_URL = "https://script.google.com/macros/s/AKfycbzwJitG5BzV5D2Gn0QgN77ButChZMe_T4IuymQbPWkk-tpJKrQ8LKe_3fHSV5-doknC/exec";
@@ -4341,6 +5002,9 @@ function showMenu(){
   endScreen.classList.add("hidden");
   leaderboardScreen.classList.add("hidden");
   namePromptScreen.classList.add("hidden");
+  typingMenuScreen.classList.add("hidden");
+  typingHudEl.classList.add("hidden");
+  typingExitBtn.classList.add("hidden");
   applyMenuText();
 }
 function applyShopText(){
@@ -8373,6 +9037,10 @@ function fitCanvasBackingStore(){
   ctx.setTransform(canvas.width / W, 0, 0, canvas.height / H, 0, 0);
 }
 function render(dt){
+  if(gameState === "typing"){
+    if(tp) drawTypingScene();
+    return;
+  }
   fitCanvasBackingStore();
   ctx.save();
   if(screenShake > 0.1){
@@ -8784,6 +9452,9 @@ function loop(ts){
     updateStructurePhysics(dt);
     updateFinalRegen(dt);
     stepBarrierBossAura(dt);
+  }
+  if(gameState === "typing"){
+    updateTyping(rawDt);
   }
   updateSkillHint();
   render(dt);
