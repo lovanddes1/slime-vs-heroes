@@ -2292,8 +2292,46 @@ function tr(key, vars){
 // Player-facing changelog, newest first. Plain language only - no technical
 // details. Every future revision must add a new entry here and bump
 // GAME_VERSION (and the filename).
-const GAME_VERSION = "1.4.0";
+const GAME_VERSION = "1.6.0";
 const CHANGELOG = [
+  { ver: "1.6.0",
+    zh: [
+      "王戰法球軌跡改成弧線:不再是直線衝過來,而是先往旁邊繞出去一圈,再緩緩轉彎飛向玩家,而且飛行時間拉長不少,反應時間變多了",
+      "王偶爾會一次施放 2~3 顆法球(齊射),每顆各自要打不同的字/單字才能消掉,增加變化",
+      "小王/魔王/最終王的血量(需要擊中的次數)大幅提高,戰鬥會拖得更久一點"
+    ],
+    en: [
+      "Boss spell-orb flight paths are now curved: instead of a straight beeline, each orb loops outward to one side first, then swings back and drifts toward the player - and the whole flight takes noticeably longer, giving much more reaction time",
+      "Bosses occasionally fire a volley of 2-3 orbs at once, each needing a different key/word typed to clear it, for more variety",
+      "Miniboss/boss/final-boss HP (hits required) is significantly higher, so fights last longer"
+    ]
+  },
+  { ver: "1.5.1",
+    zh: [
+      "修正打字特訓的當機問題:王戰(小王/魔王/最終王)中史萊姆血量歸零的那一下,程式會在關卡已經結束、敵人已經消失後,還想繼續對那隻(已經不存在的)敵人動畫,導致整個畫面卡死、無法重來或返回。現在血量歸零時會先確認關卡真的結束了才停手,重試/返回都恢復正常"
+    ],
+    en: [
+      "Fixed a Typing Practice freeze: on the exact frame a boss/miniboss/final fight brought the slime's HP to 0, the code kept trying to animate that enemy after the level had already ended and cleared it, crashing the frame loop and locking up the screen (no retry, no going back). It now checks whether the level actually ended before touching the enemy further, so retry/exit work normally again"
+    ]
+  },
+  { ver: "1.5.0",
+    zh: [
+      "主遊戲(非打字特訓)的騎士/弓兵/法師/坦克,終於不再只是造型不同的沙包了 —— 四個職業各自有一招會預兆再發動的招式:",
+      "騎士:會周期性舉盾,舉盾時受到的傷害大減、史萊姆撞上去彈得更誇張,像撞到硬盾牌",
+      "弓兵:蓄力後朝史萊姆放箭,箭矢命中會把史萊姆的飛行路線推偏一點,逼你不能無腦硬彈",
+      "法師:蓄力後在自己腳下佈下減速力場,史萊姆飛進場內速度會被拖慢,適合用來拖住史萊姆",
+      "坦克:蓄力後地面震退,附近的史萊姆會被震波推開",
+      "這些技能只在史萊姆真的在飛行中(彈射出去之後)才會發動,瞄準的時候不會被打擾;因為這款遊戲的史萊姆本身不會扣血,所以技能設計成影響飛行路線/減傷,而不是傷害史萊姆"
+    ],
+    en: [
+      "The main game's knight/archer/mage/tank are no longer just reskinned punching bags - each class now has one telegraphed skill:",
+      "Knight: periodically raises a shield, taking much less damage and bouncing the slime away harder while it's up",
+      "Archer: charges and fires an arrow that nudges the slime's flight path off course on a hit",
+      "Mage: charges and drops a slow field at its feet that drags down the slime's speed while it's inside",
+      "Tank: charges and slams the ground, pushing back any slime nearby with a shockwave",
+      "These only trigger while the slime is actually in flight (never during aiming); since the slime itself has no HP in this game, the skills affect its flight path/your incoming damage instead of dealing damage to it"
+    ]
+  },
   { ver: "1.4.0",
     zh: [
       "小王/魔王/最終王的戰鬥改成第一人稱(類似勇者鬥惡龍那種正面對戰視角):王會巨大化站在畫面正中央,不再是側面走位的小兵",
@@ -4286,6 +4324,8 @@ let gameState = "menu";
 let levelIndex = 0;
 let blocks = [];
 let heroes = [];
+let heroProjectiles = []; // archer arrows in flight
+let heroFields = []; // mage slow-field zones
 let ammoTotal = 0;
 let ammoUsed = 0;
 let score = 0;
@@ -4438,9 +4478,9 @@ function typingLevelKind(lvl){
 }
 const TYPING_KIND_CONF = {
   normal:   { killGoal:5,  hp:10,  scale:1,    atkInterval:1300, atkDmg:6,  coin:1 },
-  miniboss: { killGoal:4,  hp:40,  scale:1.35, atkInterval:1000, atkDmg:12, coin:6 },
-  boss:     { killGoal:6,  hp:80,  scale:1.7,  atkInterval:800,  atkDmg:18, coin:14 },
-  final:    { killGoal:10, hp:160, scale:2.1,  atkInterval:650,  atkDmg:24, coin:40 },
+  miniboss: { killGoal:7,  hp:40,  scale:1.35, atkInterval:1900, atkDmg:9,  coin:6 },
+  boss:     { killGoal:11, hp:80,  scale:1.7,  atkInterval:1700, atkDmg:12, coin:14 },
+  final:    { killGoal:18, hp:160, scale:2.1,  atkInterval:1500, atkDmg:16, coin:40 },
 };
 const TYPING_KIND_BADGE = { normal:"", miniboss:"🗡️", boss:"👹", final:"👑" };
 const TYPING_SLIME_MAX_HP = 100;
@@ -4492,6 +4532,7 @@ function startTypingLevel(mode, lvl){
     hp: TYPING_SLIME_MAX_HP,
     maxHp: TYPING_SLIME_MAX_HP,
     enemy:null,
+    orbs:[], // active spell orbs during boss/miniboss/final fights
     spawnAt: performance.now() + 300,
     lungeUntil:0,
     shakeUntil:0,
@@ -4530,22 +4571,78 @@ function typingRandomTarget(){
   const k = tp.content.keys[Math.floor(Math.random()*tp.content.keys.length)];
   return { key:k, label:k.toUpperCase(), typed:"" };
 }
+function typingRollWaveSize(kind){
+  const r = Math.random();
+  if(kind === "final"){
+    if(r < 0.20) return 3;
+    if(r < 0.50) return 2;
+    return 1;
+  }
+  if(kind === "boss"){
+    if(r < 0.12) return 3;
+    if(r < 0.35) return 2;
+    return 1;
+  }
+  // miniboss
+  if(r < 0.22) return 2;
+  return 1;
+}
+function typingPickDistinctTargets(count){
+  const picked = [];
+  const seen = new Set();
+  let attempts = 0;
+  while(picked.length < count && attempts < 30){
+    attempts++;
+    const t = typingRandomTarget();
+    const dedupeKey = tp.mode === "zy" ? t.code : (t.word ? t.word[0] : t.key);
+    if(seen.has(dedupeKey)) continue;
+    seen.add(dedupeKey);
+    picked.push(t);
+  }
+  return picked;
+}
+// A wave of 1-3 spell orbs launches from the boss's chest, loops OUTWARD to
+// one side first (a quadratic-bezier control point placed well outside the
+// boss's silhouette), then curves back in and drifts slowly toward the
+// camera/slime — instead of a straight, fast beeline. Multiple orbs in the
+// same wave are staggered a little so they're easy to tell apart.
+function typingSpawnWave(){
+  const e = tp.enemy;
+  const count = typingRollWaveSize(tp.kind);
+  const targets = typingPickDistinctTargets(count);
+  const top = e.bottom - e.h;
+  const chestX = e.x, chestY = top + e.h*0.38;
+  const now = performance.now();
+  targets.forEach((target, i) => {
+    const side = i % 2 === 0 ? -1 : 1;
+    const spread = 1 + Math.floor(i/2) * 0.4;
+    const p0 = { x: chestX, y: chestY };
+    const p1 = { x: chestX + side * W * 0.27 * spread, y: chestY - e.h*0.1 };
+    const p2 = { x: W/2 + (count > 1 ? side * 26 : 0), y: H*0.86 };
+    const startAt = now + i * 150;
+    tp.orbs.push(Object.assign({
+      id: Math.random(), p0, p1, p2,
+      castStartAt: startAt, castDuration: tp.conf.atkInterval,
+      impactAt: startAt + tp.conf.atkInterval,
+    }, target));
+  });
+}
 const TYPING_BOSS_HEIGHT_FRAC = { miniboss:0.5, boss:0.68, final:0.86 };
 const TYPING_BOSS_ORB_COLOR = { miniboss:"#ff9d3c", boss:"#ff3c5c", final:"#ffe86b" };
 function spawnTypingEnemy(){
   if(tp.kind !== "normal"){
     // First-person boss/miniboss/final encounter: one huge, stationary foe
-    // that casts a spell orb at the camera instead of walking in.
+    // that casts spell-orb waves at the camera instead of walking in.
     const hFrac = TYPING_BOSS_HEIGHT_FRAC[tp.kind];
     const h = H * hFrac, w = h * 0.42;
     const now = performance.now();
-    tp.enemy = Object.assign({
+    tp.enemy = {
       x: W/2, bottom: H*0.94, w, h, hp:10, maxhp:10,
       heroClass:"boss", bornAt: now,
       persistent:true, hitsLeft: tp.conf.killGoal,
-      castStartAt: now + 500, castDuration: tp.conf.atkInterval,
-    }, typingRandomTarget());
-    tp.enemy.impactAt = tp.enemy.castStartAt + tp.enemy.castDuration;
+      nextWaveAt: now + 600, _waveScheduled: true,
+    };
+    tp.orbs = [];
     return;
   }
   const heroClass = HERO_CLASSES[Math.floor(Math.random()*HERO_CLASSES.length)];
@@ -4586,45 +4683,43 @@ function typingEndLevel(win){
     }, 1400);
   }
 }
+// Regular (non-boss) minion path: one small enemy at a time, single hit kills.
 function hitTypingEnemy(){
   const e = tp.enemy;
+  playSfx("hitHero");
+  tp.lungeUntil = performance.now() + 260;
+  saveData.coins = (saveData.coins || 0) + tp.conf.coin;
+  writeSave();
+  tp.enemy = null;
+  tp.kills++;
+  tp.spawnAt = performance.now() + 550;
+  if(tp.kills >= tp.conf.killGoal){
+    typingEndLevel(true);
+    return;
+  }
+  updateTypingHud();
+}
+// Boss/miniboss/final path: typing a spell orb's prompt away in time removes
+// just that orb and chips the boss's hit counter; the boss itself only goes
+// down once every hit in its bar is spent.
+function typingHitOrb(orb){
+  const idx = tp.orbs.indexOf(orb);
+  if(idx >= 0) tp.orbs.splice(idx, 1);
+  const e = tp.enemy;
+  if(!e) return;
   e.hitsLeft--;
   playSfx("hitHero");
+  e._recoilT = 0.14; e._recoilDur = 0.14;
+  e._recoilDx = (Math.random()-0.5)*12; e._recoilDy = -3;
+  tp.lungeUntil = performance.now() + 200;
+  updateTypingHud();
   if(e.hitsLeft <= 0){
-    tp.lungeUntil = performance.now() + 260;
     saveData.coins = (saveData.coins || 0) + tp.conf.coin;
     writeSave();
     tp.enemy = null;
-    if(e.persistent){
-      // this single tough enemy WAS the level (miniboss/boss/final) — clearing
-      // it clears the level outright.
-      typingEndLevel(true);
-      return;
-    }
-    tp.kills++;
-    tp.spawnAt = performance.now() + 550;
-    if(tp.kills >= tp.conf.killGoal){
-      typingEndLevel(true);
-      return;
-    }
-  } else {
-    // this enemy survives the hit: flinch (reuses drawHero's built-in
-    // recoil effect), get a fresh target, and get a short breather before
-    // it can attack/cast again.
-    e._recoilT = 0.16; e._recoilDur = 0.16;
-    e._recoilDx = (Math.random()-0.5)*14; e._recoilDy = -4;
-    Object.assign(e, typingRandomTarget());
-    if(tp.kind !== "normal"){
-      const now = performance.now();
-      e.castStartAt = now + 350;
-      e.castDuration = tp.conf.atkInterval;
-      e.impactAt = e.castStartAt + e.castDuration;
-    } else {
-      e.nextAttackAt = performance.now() + tp.conf.atkInterval * 0.7;
-    }
-    tp.lungeUntil = performance.now() + 200;
+    tp.orbs = [];
+    typingEndLevel(true);
   }
-  updateTypingHud();
 }
 function typingTakeDamage(dmg){
   tp.hp = Math.max(0, tp.hp - dmg);
@@ -4639,18 +4734,28 @@ function updateTyping(dt){
   }
   if(tp.enemy && tp.kind !== "normal"){
     const now = performance.now();
-    if(now >= tp.enemy.impactAt){
-      // the spell reached the slime before it was typed away — it lands.
-      typingTakeDamage(tp.conf.atkDmg);
-      tp.enemy._recoilT = 0.12; tp.enemy._recoilDur = 0.12;
-      tp.enemy._recoilDx = (Math.random()-0.5)*8; tp.enemy._recoilDy = 2;
-      tp.enemy.castStartAt = now + 500;
-      tp.enemy.castDuration = tp.conf.atkInterval;
-      tp.enemy.impactAt = tp.enemy.castStartAt + tp.enemy.castDuration;
-      Object.assign(tp.enemy, typingRandomTarget());
-      updateTypingHud();
+    const e = tp.enemy;
+    if(tp.orbs.length === 0){
+      if(!e._waveScheduled){
+        e.nextWaveAt = now + 550;
+        e._waveScheduled = true;
+      } else if(now >= e.nextWaveAt){
+        typingSpawnWave();
+        e._waveScheduled = false;
+      }
     }
-    if(tp.enemy._recoilT > 0) tp.enemy._recoilT = Math.max(0, tp.enemy._recoilT - dt);
+    for(let i = tp.orbs.length - 1; i >= 0; i--){
+      const orb = tp.orbs[i];
+      if(now >= orb.impactAt){
+        // this orb reached the slime before it was typed away — it lands.
+        tp.orbs.splice(i, 1);
+        typingTakeDamage(tp.conf.atkDmg); // may end the level and null out tp.enemy
+        if(!tp || tp.ended) return; // level over (e.g. HP hit 0) — nothing left to update
+        e._recoilT = 0.1; e._recoilDur = 0.1;
+        e._recoilDx = (Math.random()-0.5)*6; e._recoilDy = 2;
+      }
+    }
+    if(tp.enemy && tp.enemy._recoilT > 0) tp.enemy._recoilT = Math.max(0, tp.enemy._recoilT - dt);
     return;
   }
   if(tp.enemy){
@@ -4666,13 +4771,43 @@ function updateTyping(dt){
       tp.enemy.nextAttackAt = now + tp.conf.atkInterval;
       tp.enemy._recoilT = 0.12; tp.enemy._recoilDur = 0.12;
       tp.enemy._recoilDx = (Math.random()-0.5)*8; tp.enemy._recoilDy = 2;
-      typingTakeDamage(tp.conf.atkDmg);
+      typingTakeDamage(tp.conf.atkDmg); // may end the level and null out tp.enemy
+      if(!tp || tp.ended) return;
     }
   }
   if(tp.enemy && tp.enemy._recoilT > 0) tp.enemy._recoilT = Math.max(0, tp.enemy._recoilT - dt);
 }
 function typingHandleKey(evt){
-  if(!tp || tp.ended || !tp.enemy) return;
+  if(!tp || tp.ended) return;
+  if(tp.kind !== "normal"){
+    if(!tp.orbs || tp.orbs.length === 0) return;
+    if(tp.mode === "zy"){
+      const orb = tp.orbs.find(o => o.code === evt.code);
+      if(orb) typingHitOrb(orb);
+      else if(ZHUYIN_KEY_MAP[evt.code]) tp.shakeUntil = performance.now() + 180;
+      return;
+    }
+    let matched = null;
+    for(const orb of tp.orbs){
+      if(orb.word){
+        if(evt.key.toLowerCase() === orb.word[orb.typed.length]){ matched = orb; break; }
+      } else if(evt.key.toLowerCase() === orb.key){
+        matched = orb; break;
+      }
+    }
+    if(matched){
+      if(matched.word){
+        matched.typed += matched.word[matched.typed.length];
+        if(matched.typed.length === matched.word.length) typingHitOrb(matched);
+      } else {
+        typingHitOrb(matched);
+      }
+    } else if(evt.key.length === 1){
+      tp.shakeUntil = performance.now() + 180;
+    }
+    return;
+  }
+  if(!tp.enemy) return;
   const e = tp.enemy;
   if(tp.mode === "zy"){
     if(evt.code === e.code){
@@ -4756,14 +4891,18 @@ function drawTypingBossView(){
     ctx.fillStyle = "rgba(0,0,0,0.5)"; ctx.fillRect(barX, barY, barW, 10);
     ctx.fillStyle = "#e05656"; ctx.fillRect(barX, barY, barW*frac, 10);
 
-    // incoming spell — a glowing orb that grows as it flies at the camera;
-    // if it isn't typed away before it fills the screen, it lands.
-    if(now >= e.castStartAt){
-      const t = Math.min(1, (now - e.castStartAt) / e.castDuration);
-      const orbColor = TYPING_BOSS_ORB_COLOR[tp.kind] || "#ff9d3c";
-      const cx = e.x + Math.sin(now/130)*8;
-      const cy = top + e.h*0.4 + t*(H*0.4);
-      const r = 8 + t*t*80;
+    // incoming spells — each orb loops outward first (quadratic bezier via
+    // p1, a control point placed off to one side) then curves back and
+    // drifts toward the camera, growing as it approaches. If its prompt
+    // isn't typed away before it arrives, it lands.
+    const orbColor = TYPING_BOSS_ORB_COLOR[tp.kind] || "#ff9d3c";
+    for(const orb of tp.orbs){
+      if(now < orb.castStartAt) continue;
+      const t = Math.min(1, (now - orb.castStartAt) / orb.castDuration);
+      const mt = 1 - t;
+      const cx = mt*mt*orb.p0.x + 2*mt*t*orb.p1.x + t*t*orb.p2.x;
+      const cy = mt*mt*orb.p0.y + 2*mt*t*orb.p1.y + t*t*orb.p2.y;
+      const r = 8 + t*t*90;
       ctx.save();
       ctx.globalAlpha = 0.9;
       const orbGrad = ctx.createRadialGradient(cx,cy,1,cx,cy,r);
@@ -4771,7 +4910,7 @@ function drawTypingBossView(){
       ctx.fillStyle = orbGrad;
       ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.fill();
       ctx.restore();
-      drawPromptLabel(e, cx, cy);
+      drawPromptLabel(orb, cx, cy);
     }
   }
   if(now < tp.shakeUntil){
@@ -5536,6 +5675,8 @@ function startLevel(idx){
   levelHadMiss = false;
   killsThisShot = 0;
   particles = [];
+  heroProjectiles = [];
+  heroFields = [];
   screenShake = 0;
   armedItem = null;
   levelLuckActive = false;
@@ -6692,8 +6833,10 @@ function resolveSlimeVsObject(obj, isHero){
     triggerSkyfallImpact(col.closestX, col.closestY);
   }
   const nullified = isHero && isDamageNullified(obj);
+  const knightBlocking = isHero && obj.heroClass === "knight" && obj._blocking;
   const restitution = nullified ? 1.25 : (slime.bouncy ? 1.54 : (slime.heavy ? 0.12 :
-    (slime._bounceBoostHits > 0 ? Math.min(getBounceRestitution() + 0.35, 1.5) : getBounceRestitution())));
+    (slime._bounceBoostHits > 0 ? Math.min(getBounceRestitution() + 0.35, 1.5) : getBounceRestitution()))) *
+    (knightBlocking ? 1.3 : 1);
   if(slime._bounceBoostHits > 0){
     slime._bounceBoostHits--;
     spawnShockwave(col.closestX, col.closestY, "#5db8e8", 50, 0.25);
@@ -6748,6 +6891,7 @@ function resolveSlimeVsObject(obj, isHero){
   }
   if(!obj._hitCooldown || obj._hitCooldown <= 0){
     let dmg = (isHero ? speed * HERO_DMG_MULT : speed * BLOCK_DMG_MULT) * getSlimeDamageMultiplier();
+    if(knightBlocking) dmg *= 0.3;
     if(slime.heavy) dmg *= 8;
     if(slime.giant) dmg *= 3;
     const isCrit = slime._guaranteedCritHits > 0 || Math.random() < getCritChance();
@@ -7378,6 +7522,175 @@ function refreshWorldGimmickForShot(){
   if(getWorldTheme().gimmick !== "frost") return;
   for(const h of heroes){
     if(!h.isBoss && h.hp > 0) h._frostIntact = true;
+  }
+}
+// --- Class skills for regular minions (knight/archer/mage/tank) ---
+// The slime itself never takes HP damage in this game (only heroes/blocks
+// do), so these skills work the physics side of the fight instead: they
+// change how much damage a class takes, or nudge the slime's flight path.
+// Everything is telegraphed (a visible wind-up) before it triggers, and
+// only runs while a shot is actually in the air (slime.state === "flying"),
+// so it never interferes with aiming.
+const HERO_SKILL_CONF = {
+  knight: { cooldown:2.6, blockDur:1.0 },
+  archer: { cooldown:2.2, telegraph:0.35, arrowSpeed:820, push:230 },
+  mage:   { cooldown:3.6, telegraph:0.9,  fieldDur:1.6, fieldRadius:95, slowFactor:2.2 },
+  tank:   { cooldown:4.2, telegraph:0.55, slamRadius:130, push:480 },
+};
+function initHeroSkillState(h){
+  const conf = HERO_SKILL_CONF[h.heroClass];
+  if(!conf) return;
+  h._skillPhase = "cooldown";
+  h._skillT = conf.cooldown * (0.4 + Math.random()*0.6); // stagger so classes don't all sync up
+  h._blocking = false;
+}
+function updateHeroSkills(dt){
+  if(!slime || slime.state !== "flying") { updateHeroProjectilesAndFields(dt); return; }
+  for(const h of heroes){
+    const conf = HERO_SKILL_CONF[h.heroClass];
+    if(!conf || h.hp <= 0 || isHeroHidden(h)) continue;
+    if(h._skillT === undefined) initHeroSkillState(h);
+    h._skillT -= dt;
+    if(h.heroClass === "knight"){
+      if(h._skillT <= 0){
+        h._blocking = !h._blocking;
+        h._skillT = h._blocking ? conf.blockDur : conf.cooldown;
+        if(h._blocking) playSfx("deflect");
+      }
+      continue;
+    }
+    if(h._skillPhase === "cooldown" && h._skillT <= 0){
+      h._skillPhase = "telegraph";
+      h._skillT = conf.telegraph;
+    } else if(h._skillPhase === "telegraph" && h._skillT <= 0){
+      fireHeroSkill(h, conf);
+      h._skillPhase = "cooldown";
+      h._skillT = conf.cooldown;
+    }
+  }
+  updateHeroProjectilesAndFields(dt);
+}
+function fireHeroSkill(h, conf){
+  const originX = h.x, originY = h.bottom - h.h*0.55;
+  if(h.heroClass === "archer"){
+    const dx = slime.x - originX, dy = slime.y - originY;
+    const dist = Math.sqrt(dx*dx + dy*dy) || 1;
+    heroProjectiles.push({
+      x: originX, y: originY,
+      vx: dx/dist * conf.arrowSpeed, vy: dy/dist * conf.arrowSpeed,
+      push: conf.push, life: 1.4, owner: h,
+    });
+    playSfx("deflect", 0.5);
+  } else if(h.heroClass === "mage"){
+    heroFields.push({ x: originX, y: originY, r: conf.fieldRadius, t: conf.fieldDur, maxT: conf.fieldDur, slow: conf.slowFactor });
+    spawnShockwave(originX, originY, "#b48cff", conf.fieldRadius, 0.4);
+    createImpactParticles(originX, originY, "#c9a8ff", 10);
+  } else if(h.heroClass === "tank"){
+    const dx = slime.x - originX, dy = slime.y - originY;
+    const dist = Math.sqrt(dx*dx + dy*dy);
+    if(dist <= conf.slamRadius && dist > 0.001){
+      slime.vx += dx/dist * conf.push;
+      slime.vy += dy/dist * conf.push - 100;
+    }
+    spawnShockwave(originX, h.bottom, "#8a6a4a", conf.slamRadius, 0.4);
+    createImpactParticles(originX, h.bottom, "#6e4023", 14);
+    screenShake = Math.min(screenShake + 6, 14);
+  }
+}
+function updateHeroProjectilesAndFields(dt){
+  for(let i = heroProjectiles.length - 1; i >= 0; i--){
+    const p = heroProjectiles[i];
+    p.x += p.vx * dt; p.y += p.vy * dt; p.life -= dt;
+    let hit = false;
+    if(slime && slime.state === "flying"){
+      const r = getSlimeRadius() + 8;
+      const dx = slime.x - p.x, dy = slime.y - p.y;
+      if(dx*dx + dy*dy <= r*r) hit = true;
+    }
+    if(hit){
+      const dx = slime.x - p.x, dy = slime.y - p.y;
+      const dist = Math.sqrt(dx*dx + dy*dy) || 1;
+      slime.vx += (dx/dist) * p.push;
+      slime.vy += (dy/dist) * p.push * 0.4;
+      createImpactParticles(p.x, p.y, "#e8d8a0", 8);
+      playSfx("hitBlock", 0.3);
+      heroProjectiles.splice(i, 1);
+    } else if(p.life <= 0 || p.x < -40 || p.x > W+40 || p.y < -40 || p.y > H+40){
+      heroProjectiles.splice(i, 1);
+    }
+  }
+  for(let i = heroFields.length - 1; i >= 0; i--){
+    const f = heroFields[i];
+    f.t -= dt;
+    if(f.t <= 0){ heroFields.splice(i, 1); continue; }
+    if(slime && slime.state === "flying"){
+      const dx = slime.x - f.x, dy = slime.y - f.y;
+      if(dx*dx + dy*dy <= f.r*f.r){
+        const drag = Math.max(0, 1 - f.slow * dt);
+        slime.vx *= drag; slime.vy *= drag;
+      }
+    }
+  }
+}
+function drawHeroSkillFx(){
+  for(const h of heroes){
+    if(h.hp <= 0 || isHeroHidden(h)) continue;
+    if(h.heroClass === "knight" && h._blocking){
+      const cx = h.x + h.w*0.45, cy = h.bottom - h.h*0.55;
+      ctx.save();
+      ctx.globalAlpha = 0.85;
+      ctx.fillStyle = "#cfe6ff";
+      ctx.strokeStyle = "#4a6a9a";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, h.w*0.22, h.h*0.32, 0, 0, Math.PI*2);
+      ctx.fill(); ctx.stroke();
+      ctx.restore();
+    } else if(h.heroClass === "mage" && h._skillPhase === "telegraph"){
+      const conf = HERO_SKILL_CONF.mage;
+      const t = 1 - Math.max(0, h._skillT) / conf.telegraph;
+      const cx = h.x, cy = h.bottom - h.h*0.98;
+      ctx.save();
+      ctx.globalAlpha = 0.5 + t*0.4;
+      ctx.fillStyle = "#c9a8ff";
+      ctx.beginPath(); ctx.arc(cx, cy, 4 + t*10, 0, Math.PI*2); ctx.fill();
+      ctx.restore();
+    } else if(h.heroClass === "tank" && h._skillPhase === "telegraph"){
+      const conf = HERO_SKILL_CONF.tank;
+      const t = 1 - Math.max(0, h._skillT) / conf.telegraph;
+      ctx.save();
+      ctx.globalAlpha = 0.35 * t;
+      ctx.fillStyle = "#8a6a4a";
+      ctx.beginPath(); ctx.ellipse(h.x, h.bottom, conf.slamRadius*t, conf.slamRadius*t*0.28, 0, 0, Math.PI*2); ctx.fill();
+      ctx.restore();
+    } else if(h.heroClass === "archer" && h._skillPhase === "telegraph"){
+      const cx = h.x + h.w*0.62, cy = h.bottom - h.h*0.42;
+      const conf = HERO_SKILL_CONF.archer;
+      const t = 1 - Math.max(0, h._skillT) / conf.telegraph;
+      ctx.save();
+      ctx.globalAlpha = 0.6 + t*0.4;
+      ctx.fillStyle = "#fff6d8";
+      ctx.beginPath(); ctx.arc(cx, cy, 3 + t*4, 0, Math.PI*2); ctx.fill();
+      ctx.restore();
+    }
+  }
+  for(const f of heroFields){
+    const a = Math.min(1, f.t / f.maxT) * 0.28;
+    ctx.save();
+    ctx.globalAlpha = a;
+    ctx.fillStyle = "#8a5fd6";
+    ctx.beginPath(); ctx.arc(f.x, f.y, f.r, 0, Math.PI*2); ctx.fill();
+    ctx.restore();
+  }
+  for(const p of heroProjectiles){
+    ctx.save();
+    const ang = Math.atan2(p.vy, p.vx);
+    ctx.translate(p.x, p.y); ctx.rotate(ang);
+    ctx.strokeStyle = "#5c4326"; ctx.lineWidth = 2.4;
+    ctx.beginPath(); ctx.moveTo(-9,0); ctx.lineTo(6,0); ctx.stroke();
+    ctx.fillStyle = "#e8d8a0";
+    ctx.beginPath(); ctx.moveTo(6,0); ctx.lineTo(-1,-3); ctx.lineTo(-1,3); ctx.closePath(); ctx.fill();
+    ctx.restore();
   }
 }
 function applyFrostArmor(h, dmg, x, y){
@@ -9067,6 +9380,7 @@ function render(dt){
       drawHiddenHeroGhost(h);
     }
   }
+  drawHeroSkillFx();
   drawSlime();
   drawDashRing();
   updateAndDrawFloatTexts(dt);
@@ -9452,6 +9766,7 @@ function loop(ts){
     updateStructurePhysics(dt);
     updateFinalRegen(dt);
     stepBarrierBossAura(dt);
+    updateHeroSkills(dt);
   }
   if(gameState === "typing"){
     updateTyping(rawDt);
