@@ -729,6 +729,20 @@
     background:linear-gradient(180deg,#ffe08a,var(--ui-accent));
     color:#2b2440;
   }
+  #typing-diff-tabs{
+    display:flex;gap:0.5em;margin-bottom:2px;
+  }
+  .typing-diff-tab{
+    font-family:inherit;font-weight:700;
+    font-size:clamp(11px,1.6vw,14px);
+    padding:0.35em 1.1em;border-radius:999px;border:none;cursor:pointer;
+    background:rgba(255,255,255,0.08);color:var(--ui-text);opacity:0.8;
+    transition:transform 0.08s ease;
+  }
+  .typing-diff-tab.active{
+    background:linear-gradient(180deg,#7fe0b8,#2e9a5c);
+    color:#0f3a24;opacity:1;
+  }
   #typing-level-grid{
     width:100%;max-width:560px;
     display:grid;
@@ -1666,6 +1680,11 @@
         <button class="typing-mode-tab active" id="typing-tab-en" data-mode="en">英打 EN</button>
         <button class="typing-mode-tab" id="typing-tab-zy" data-mode="zy">注音 ㄅㄆㄇ</button>
       </div>
+      <div id="typing-diff-tabs">
+        <button class="typing-diff-tab" id="typing-diff-easy" data-diff="easy">輕鬆</button>
+        <button class="typing-diff-tab active" id="typing-diff-normal" data-diff="normal">標準</button>
+        <button class="typing-diff-tab" id="typing-diff-hard" data-diff="hard">挑戰</button>
+      </div>
       <div id="typing-legend">
         <span>🗡️ 每5關小王</span><span>👹 每20關魔王</span><span>👑 第100關</span>
       </div>
@@ -2291,8 +2310,20 @@ function tr(key, vars){
 // Player-facing changelog, newest first. Plain language only - no technical
 // details. Every future revision must add a new entry here and bump
 // GAME_VERSION (and the filename).
-const GAME_VERSION = "1.9.1";
+const GAME_VERSION = "1.10.0";
 const CHANGELOG = [
+  { ver: "1.10.0",
+    zh: [
+      "打字特訓選單新增難度切換:輕鬆/標準/挑戰,會一起影響每關要打的次數、敵人攻擊速度與傷害;「挑戰」難度下,單字類的關卡會改抽整個合併字庫,內容更豐富多變,不會老是同幾個單字",
+      "一般小兵每關要擊倒的數量從 5 隻提高到 8 隻(還會再依難度調整),不會打沒幾個字就過關",
+      "英打單字庫大幅擴充(三個難度的單字清單都增加超過一倍),重複感會少很多"
+    ],
+    en: [
+      "Added a difficulty toggle to the Typing Practice menu - Easy/Normal/Hard - which adjusts how many reps each level needs, and how fast/hard enemies attack. On Hard, word-based levels draw from the full combined word pool for a lot more variety instead of the same short band list",
+      "Regular levels now need 8 minion kills to clear instead of 5 (further adjusted by difficulty), so levels last longer",
+      "The English word pool is more than doubled across all three difficulty bands, so repetition should be much less noticeable"
+    ]
+  },
   { ver: "1.9.1",
     zh: [
       "修正打字特訓一般小兵的身形比例:之前誤用了寬44、高110的拉長比例,跟本體遊戲實際的Q版矮胖比例(寬高接近1:1)不一致,難怪側面看起來變長;現在改回跟本體遊戲一致的比例,兩邊看起來應該一樣可愛了"
@@ -2929,7 +2960,7 @@ function defaultUpgrades(){ return { power:0, bounce:0, crit:0, ammo:0 }; }
 function defaultItems(){ return { bomb:0, heavy:0, magnet:0, bouncy:0, ammoBox:0, luck:0 }; }
 function defaultStats(){ return { totalKills:0, maxCombo:0, zeroRealmEntries:0, ultCasts:0, skillCasts:{ power:0, crit:0, bounce:0, ammo:0 } }; }
 function defaultAchievements(){ return {}; }
-let saveData = { currentLevel:0, highScore:0, lang:"zh", difficulty:"normal", coins:0, upgrades:defaultUpgrades(), items:defaultItems(), showSkillPreview:true, kbTipShown2:false, musicOn:true, sfxOn:true, introSeen:false, stats:defaultStats(), achievements:defaultAchievements(), equippedSkin:null, typingProgress:{en:0, zy:0} };
+let saveData = { currentLevel:0, highScore:0, lang:"zh", difficulty:"normal", coins:0, upgrades:defaultUpgrades(), items:defaultItems(), showSkillPreview:true, kbTipShown2:false, musicOn:true, sfxOn:true, introSeen:false, stats:defaultStats(), achievements:defaultAchievements(), equippedSkin:null, typingProgress:{en:0, zy:0}, typingDifficulty:"normal" };
 let saveLoaded = false;
 const storageMock = {
   data: {},
@@ -3006,6 +3037,8 @@ async function loadSave(){
       if(!saveData.stats.skillCasts) saveData.stats.skillCasts = { power:0, crit:0, bounce:0, ammo:0 };
       if(!saveData.achievements) saveData.achievements = defaultAchievements();
       if(!saveData.typingProgress) saveData.typingProgress = {en:0, zy:0};
+      if(!saveData.typingDifficulty) saveData.typingDifficulty = "normal";
+      typingDifficulty = saveData.typingDifficulty;
       if(saveData.equippedSkin === undefined) saveData.equippedSkin = null;
       // migrate old paid "slimeLevel" damage upgrades into the new power upgrade
       if(typeof saveData.slimeLevel === "number" && saveData.slimeLevel > 0){
@@ -3045,7 +3078,7 @@ document.addEventListener("visibilitychange", () => {
 });
 window.addEventListener("pagehide", flushSaveSync);
 async function resetSave(){
-  saveData = { currentLevel:0, highScore:0, lang:lang, difficulty:difficulty, coins:0, upgrades:defaultUpgrades(), items:defaultItems(), showSkillPreview:true, kbTipShown2:false, musicOn:true, sfxOn:true, introSeen:false, stats:defaultStats(), achievements:defaultAchievements(), equippedSkin:null, typingProgress:{en:0, zy:0} };
+  saveData = { currentLevel:0, highScore:0, lang:lang, difficulty:difficulty, coins:0, upgrades:defaultUpgrades(), items:defaultItems(), showSkillPreview:true, kbTipShown2:false, musicOn:true, sfxOn:true, introSeen:false, stats:defaultStats(), achievements:defaultAchievements(), equippedSkin:null, typingProgress:{en:0, zy:0}, typingDifficulty:"normal" };
   try{
     await safeStorage.set(SAVE_KEY, JSON.stringify(saveData));
   }catch(e){
@@ -4453,6 +4486,9 @@ const typingMenuBtn = document.getElementById("typing-menu-btn");
 const typingMenuScreen = document.getElementById("typing-menu-screen");
 const typingTabEnBtn = document.getElementById("typing-tab-en");
 const typingTabZyBtn = document.getElementById("typing-tab-zy");
+const typingDiffEasyBtn = document.getElementById("typing-diff-easy");
+const typingDiffNormalBtn = document.getElementById("typing-diff-normal");
+const typingDiffHardBtn = document.getElementById("typing-diff-hard");
 const typingTierListEl = document.getElementById("typing-level-grid");
 const typingHpBarFillEl = document.getElementById("typing-hp-bar-fill");
 const typingBackBtn = document.getElementById("typing-back-btn");
@@ -4485,9 +4521,9 @@ const ZY_TOP_CODES    = ["KeyQ","KeyW","KeyE","KeyR","KeyT","KeyY","KeyU","KeyI"
 const ZY_BOTTOM_CODES = ["KeyZ","KeyX","KeyC","KeyV","KeyB","KeyN","KeyM","Comma","Period","Slash"];
 const ZY_NUMBER_CODES = ["Digit1","Digit2","Digit3","Digit4","Digit5","Digit6","Digit7","Digit8","Digit9","Digit0","Minus"];
 const ZY_ALL_CODES = ZY_HOME_CODES.concat(ZY_TOP_CODES, ZY_BOTTOM_CODES, ZY_NUMBER_CODES);
-const WORDS_3    = ["cat","dog","sun","hat","pen","bus","cup","box","map","run","big","red","hot","top","six","bed","egg","fox","jam","kid"];
-const WORDS_4    = ["frog","fish","milk","desk","door","tree","star","ball","book","lamp","rain","snow","cake","gift","song"];
-const WORDS_HARD = ["apple","happy","tiger","water","green","house","plant","smile","bread","chair","cloud","dance","eagle","flute","grape","honey"];
+const WORDS_3    = ["cat","dog","sun","hat","pen","bus","cup","box","map","run","big","red","hot","top","six","bed","egg","fox","jam","kid","pig","cow","bee","owl","ant","bag","cap","fan","gum","hen","jet","kit","lid","mop","net","oak","pit","rug","sip","tin","van","wig","yak","zip","arm","ear","eye","leg","toe","zoo"];
+const WORDS_4    = ["frog","fish","milk","desk","door","tree","star","ball","book","lamp","rain","snow","cake","gift","song","bird","boat","cave","corn","crab","drum","fire","gate","gold","hill","kite","lake","leaf","lion","mask","moon","nest","nose","pear","pond","road","rock","rope","sand","seed","ship","shoe","sock","soup","swan","wave","wind","wolf","worm"];
+const WORDS_HARD = ["apple","happy","tiger","water","green","house","plant","smile","bread","chair","cloud","dance","eagle","flute","grape","honey","island","jungle","kitten","ladder","magnet","napkin","orange","pencil","puzzle","rabbit","sunset","turtle","violin","wallet","yellow","zigzag","basket","candle","dragon","forest","garden","hammer","insect","jacket","kettle","lizard","mirror","needle","ocean","pirate","quiver","rocket","spider","teapot"];
 // --- Content band per level (1-based) — same content is used whether the
 // level is a normal wave, a miniboss, or a boss; only the encounter shape
 // (single tough enemy vs several small ones) changes with the level kind.
@@ -4516,7 +4552,16 @@ function zyContentForLevel(lvl){
   if(lvl <= 70) return { codes: ZY_NUMBER_CODES };
   return { codes: ZY_ALL_CODES }; // 71-100 full review
 }
-function contentForLevel(mode, lvl){ return mode === "zy" ? zyContentForLevel(lvl) : enContentForLevel(lvl); }
+function contentForLevel(mode, lvl, diffKey){
+  const base = mode === "zy" ? zyContentForLevel(lvl) : enContentForLevel(lvl);
+  const d = TYPING_DIFF_CONF[diffKey] || TYPING_DIFF_CONF.normal;
+  if(d.richWords && base.words){
+    // Hard mode draws from the full combined word pool for a lot more
+    // variety, instead of just this band's shorter list.
+    return { words: WORDS_3.concat(WORDS_4, WORDS_HARD) };
+  }
+  return base;
+}
 // --- Level "kind" (encounter shape), matching the main game's rhythm:
 // miniboss every 5 levels, boss every 20, one grand final at level 100.
 function typingLevelKind(lvl){
@@ -4526,13 +4571,31 @@ function typingLevelKind(lvl){
   return "normal";
 }
 const TYPING_KIND_CONF = {
-  normal:   { killGoal:5,  hp:10,  scale:1,    atkInterval:1300, atkDmg:6,  coin:1 },
+  normal:   { killGoal:8,  hp:10,  scale:1,    atkInterval:1300, atkDmg:6,  coin:1 },
   miniboss: { killGoal:7,  hp:40,  scale:1.35, atkInterval:2600, atkDmg:9,  coin:6 },
   boss:     { killGoal:11, hp:80,  scale:1.7,  atkInterval:2400, atkDmg:12, coin:14 },
   final:    { killGoal:18, hp:160, scale:2.1,  atkInterval:2100, atkDmg:16, coin:40 },
 };
 const TYPING_KIND_BADGE = { normal:"", miniboss:"🗡️", boss:"👹", final:"👑" };
 const TYPING_SLIME_MAX_HP = 100;
+// Difficulty affects how many reps a level takes, how fast/hard enemies
+// attack, and (on Hard) how varied the word pool is.
+const TYPING_DIFF_CONF = {
+  easy:   { label:"輕鬆", killGoalMult:0.7,  speedMult:0.8, dmgMult:0.8,  richWords:false },
+  normal: { label:"標準", killGoalMult:1,    speedMult:1,   dmgMult:1,    richWords:false },
+  hard:   { label:"挑戰", killGoalMult:1.75, speedMult:1.3, dmgMult:1.2,  richWords:true  },
+};
+let typingDifficulty = "normal";
+function applyTypingDifficulty(conf, diffKey){
+  const d = TYPING_DIFF_CONF[diffKey] || TYPING_DIFF_CONF.normal;
+  return {
+    killGoal: Math.max(1, Math.round(conf.killGoal * d.killGoalMult)),
+    hp: conf.hp, scale: conf.scale,
+    atkInterval: Math.max(300, Math.round(conf.atkInterval / d.speedMult)),
+    atkDmg: Math.max(1, Math.round(conf.atkDmg * d.dmgMult)),
+    coin: conf.coin,
+  };
+}
 let typingMode = "en"; // "en" | "zy"
 let tp = null; // active session state while gameState === "typing"
 
@@ -4546,6 +4609,9 @@ function showTypingMenu(){
   typingHudEl.classList.add("hidden");
   typingExitBtn.classList.add("hidden");
   typingMenuScreen.classList.remove("hidden");
+  typingDiffEasyBtn.classList.toggle("active", typingDifficulty === "easy");
+  typingDiffNormalBtn.classList.toggle("active", typingDifficulty === "normal");
+  typingDiffHardBtn.classList.toggle("active", typingDifficulty === "hard");
   renderTypingLevelGrid();
 }
 function setTypingModeTab(mode){
@@ -4553,6 +4619,14 @@ function setTypingModeTab(mode){
   typingTabEnBtn.classList.toggle("active", mode === "en");
   typingTabZyBtn.classList.toggle("active", mode === "zy");
   renderTypingLevelGrid();
+}
+function setTypingDifficulty(diff){
+  typingDifficulty = diff;
+  saveData.typingDifficulty = diff;
+  writeSave();
+  typingDiffEasyBtn.classList.toggle("active", diff === "easy");
+  typingDiffNormalBtn.classList.toggle("active", diff === "normal");
+  typingDiffHardBtn.classList.toggle("active", diff === "hard");
 }
 function renderTypingLevelGrid(){
   const unlocked = typingUnlockedLevel(typingMode);
@@ -4572,10 +4646,11 @@ function renderTypingLevelGrid(){
 }
 function startTypingLevel(mode, lvl){
   const kind = typingLevelKind(lvl);
-  const conf = TYPING_KIND_CONF[kind];
-  const content = contentForLevel(mode, lvl);
+  const conf = applyTypingDifficulty(TYPING_KIND_CONF[kind], typingDifficulty);
+  const diffConf = TYPING_DIFF_CONF[typingDifficulty] || TYPING_DIFF_CONF.normal;
+  const content = contentForLevel(mode, lvl, typingDifficulty);
   tp = {
-    mode, level:lvl, kind, conf, content,
+    mode, level:lvl, kind, conf, content, diffConf, diffKey: typingDifficulty,
     worldIdx: Math.floor((lvl-1)/20) % WORLD_THEMES.length,
     kills:0,
     hp: TYPING_SLIME_MAX_HP,
@@ -4600,7 +4675,8 @@ function exitTypingToMenu(){
   showTypingMenu();
 }
 function updateTypingHud(){
-  typingHudTierEl.textContent = "Lv." + tp.level + " " + (TYPING_KIND_BADGE[tp.kind] || "");
+  const diffLabel = (TYPING_DIFF_CONF[tp.diffKey] || TYPING_DIFF_CONF.normal).label;
+  typingHudTierEl.textContent = "Lv." + tp.level + " " + (TYPING_KIND_BADGE[tp.kind] || "") + " · " + diffLabel;
   const done = (tp.enemy && tp.enemy.persistent) ? (tp.conf.killGoal - tp.enemy.hitsLeft) : tp.kills;
   typingHudProgressEl.textContent = done + " / " + tp.conf.killGoal;
   const frac = Math.max(0, tp.hp / tp.maxHp);
@@ -4742,7 +4818,8 @@ function spawnTypingEnemy(){
   }, typingRandomTarget());
 }
 function typingEnemySpeed(){
-  return 30 + Math.min(tp.level, 60) * 0.7; // gentle ramp, capped so it never gets unfair
+  const base = 30 + Math.min(tp.level, 60) * 0.7; // gentle ramp, capped so it never gets unfair
+  return base * ((tp.diffConf && tp.diffConf.speedMult) || 1);
 }
 function typingEndLevel(win){
   tp.ended = true;
@@ -4753,8 +4830,8 @@ function typingEndLevel(win){
     writeSave();
     const hasNext = tp.level < TYPING_LEVELS_TOTAL;
     typingTierClearBannerEl.textContent = tp.level === TYPING_LEVELS_TOTAL ? "👑 恭喜!100 關全破!" :
-      (tp.conf === TYPING_KIND_CONF.boss ? "👹 魔王擊破!解鎖下一關" :
-       tp.conf === TYPING_KIND_CONF.miniboss ? "🗡️ 小王擊破!解鎖下一關" : "🎉 過關!解鎖下一關");
+      (tp.kind === "boss" ? "👹 魔王擊破!解鎖下一關" :
+       tp.kind === "miniboss" ? "🗡️ 小王擊破!解鎖下一關" : "🎉 過關!解鎖下一關");
     typingTierClearBannerEl.classList.add("show");
     setTimeout(() => {
       typingTierClearBannerEl.classList.remove("show");
@@ -5274,6 +5351,9 @@ function drawTypingMinionShot(e, shot, now){
 typingMenuBtn.addEventListener("click", () => { showTypingMenu(); });
 typingBackBtn.addEventListener("click", () => { showMenu(); });
 typingTabEnBtn.addEventListener("click", () => setTypingModeTab("en"));
+typingDiffEasyBtn.addEventListener("click", () => setTypingDifficulty("easy"));
+typingDiffNormalBtn.addEventListener("click", () => setTypingDifficulty("normal"));
+typingDiffHardBtn.addEventListener("click", () => setTypingDifficulty("hard"));
 typingTabZyBtn.addEventListener("click", () => setTypingModeTab("zy"));
 typingExitBtn.addEventListener("click", () => { exitTypingToMenu(); });
 
