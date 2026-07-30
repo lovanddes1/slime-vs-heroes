@@ -5550,6 +5550,8 @@ typingExitBtn.addEventListener("click", () => { exitTypingToMenu(); });
 // --- Online leaderboard (Google Apps Script + Google Sheet backend) ---
 // 部署好 Google Apps Script 網路應用程式後,把網址貼在這裡(結尾類似 /exec)
 const LEADERBOARD_URL = "https://script.google.com/macros/s/AKfycbzwJitG5BzV5D2Gn0QgN77ButChZMe_T4IuymQbPWkk-tpJKrQ8LKe_3fHSV5-doknC/exec";
+// 後台用這個 key 決定要讀寫試算表裡的哪個分頁(對應 Leaderboard_slime-vs-heroes)
+const LB_GAME_KEY = "slime-vs-heroes";
 const leaderboardBtn = document.getElementById("leaderboard-btn");
 const leaderboardScreen = document.getElementById("leaderboard-screen");
 const leaderboardTitleEl = document.getElementById("leaderboard-title");
@@ -5796,7 +5798,7 @@ function lbFetchScores(){
     return;
   }
   leaderboardListEl.innerHTML = '<p style="opacity:0.7;">' + tr("lbLoading") + '</p>';
-  fetch(LEADERBOARD_URL)
+  fetch(LEADERBOARD_URL + "?game=" + encodeURIComponent(LB_GAME_KEY))
     .then(r => r.json())
     .then(data => {
       if(!data || !data.ok) throw new Error((data && data.error) || "error");
@@ -5851,6 +5853,7 @@ function lbAutoSubmit(scoreValue){
     method: "POST",
     headers: { "Content-Type": "text/plain;charset=utf-8" },
     body: JSON.stringify({
+      game: LB_GAME_KEY,
       name: saveData.playerName,
       score: scoreValue,
       level: saveData.currentLevel || 0,
